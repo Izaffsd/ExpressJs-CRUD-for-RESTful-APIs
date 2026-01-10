@@ -1,0 +1,14 @@
+# Node
+node_modules
+npm-debug.log
+
+# Env
+.env
+.env.*
+
+# FE & BE
+monash-api/node_modules
+monash-web/node_modules
+
+# OS
+.DS_Store

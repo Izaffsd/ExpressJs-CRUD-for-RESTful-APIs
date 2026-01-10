@@ -1,0 +1,27 @@
+# Node.js API Setup
+
+## Initialize Project
+npm init -y
+
+
+Install Dependencies
+
+npm i express@5.1.0
+npm i mysql2
+npm i -D nodemon
+npm i morgan
+npm i dotenv
+
+
+Run Server
+
+npm run apit
+
+
+express → backend framework
+
+mysql → database connection
+
+nodemon → auto restart server
+
+Use express.json() to parse JSON request body
