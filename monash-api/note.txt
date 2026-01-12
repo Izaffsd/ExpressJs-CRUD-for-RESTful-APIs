@@ -15,7 +15,7 @@ npm i dotenv
 
 Run Server
 
-npm run apit
+npm run dev
 
 
 express → backend framework
