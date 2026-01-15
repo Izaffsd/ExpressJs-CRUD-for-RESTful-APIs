@@ -1,22 +1,15 @@
-export const response = (
-  res,
-  statusCode,
-  payload = null,
-  message = "",
-  errorCode = null,
-  metadata = null
-) => {
-  const resBody = {
-    statusCode,
-    success: statusCode < 400,
-    message,
-    payload,
-  }
-
-  if (metadata) resBody.metadata = metadata
-  if (errorCode) resBody.errorCode = errorCode
-
-  return res.status(statusCode).json(resBody)
+export const response = (statusCode, data, message, res, errorCode = null, metadata = null) => {
+    // func status ( http code ) dari express = Network -> Headers 
+    const resBody = {
+        success: statusCode < 400, // check conditon true or false
+        payload: data,
+        message,
+        statusCode,
+    }
+    if(metadata) resBody.metadata = metadata
+    if(errorCode) resBody.errorCode = errorCode
+    
+    return res.status(statusCode).json(resBody)
 }
 
 

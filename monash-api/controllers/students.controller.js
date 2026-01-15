@@ -5,10 +5,10 @@ import { validNoKp, validEmail, validId, validMatricNo } from '../utils/validato
 export const getAllStudents = async (req, res) => {
     try {
         const [students] = await db.query('SELECT * FROM student')
-        return response(res, 200, students, 'All Students successfully')
+        return response(200, students, 'All Students successfully', res)
     } catch (error) {
         console.error('[GET ALL STUDENTS ERROR]', error)
-        return response(res, 503, null, 'Failed to fetch students', 'STUDENT_FETCH_FAILED')
+        return response(500, null, 'Internal server error', res, 'SERVER_ERROR')
     }
 }
 
@@ -17,19 +17,19 @@ export const getStudentById = async (req, res) => {
         const student_Id = req.params.studentId
         
         if (!validId(student_Id)) {
-            return response(res, 400, null, 'Invalid student id', 'INVALID_STUDENT_ID')
+            return response(400, null, 'Invalid student id', res, 'INVALID_STUDENT_ID')
         }
 
         const [result] = await db.query('SELECT * FROM student WHERE student_id = ?', [student_Id])
         
         if (result.length === 0) {
-            return response(res, 404, null, 'Student not found', 'STUDENT_NOT_FOUND')
+            return response(404, null, 'Student not found', res, 'STUDENT_NOT_FOUND')
         }
 
-        return response(res, 200, result, 'Student by Id successfully')
+        return response(200, result, 'Student by Id successfully', res)
     } catch (error) {
         console.error('[GET STUDENT BY ID ERROR]', error)
-        return response(res, 503, null, 'Failed to retrieve student', 'STUDENT_RETRIEVE_FAILED')
+        return response(500, null, 'Internal server error', res, 'SERVER_ERROR')
     }
 }
 
@@ -73,31 +73,31 @@ export const createStudent = async (req, res) => {
 
         // Validate required fields
         if (!matric_no || !email || !student_name || !course_id || !no_kp) {
-            return response(res, 400, null, 'Missing required fields', 'REQUIRED_ERROR')
+            return response(400, null, 'Missing required fields', res, 'REQUIRED_ERROR')
         }
 
         // Validate field formats
         if (!validMatricNo(matric_no)) {
-            return response(res, 400, null, 'Invalid Student Matric', 'INVALID_STUDENT_MATRIC')
+            return response(400, null, 'Invalid Student Matric', res, 'INVALID_STUDENT_MATRIC')
         }
 
         if (!validEmail(email)) {
-            return response(res, 400, null, 'Invalid email input', 'INVALID_EMAIL')
+            return response(400, null, 'Invalid email input', res, 'INVALID_EMAIL')
         }
 
         if (!validNoKp(no_kp)) {
-            return response(res, 400, null, 'Invalid No KP input', 'INVALID_NO_KP')
+            return response(400, null, 'Invalid No KP input', res, 'INVALID_NO_KP')
         }
 
         if (!validId(course_id)) {
-            return response(res, 400, null, 'Invalid Course Id', 'INVALID_COURSE_ID')
+            return response(400, null, 'Invalid Course Id', res, 'INVALID_COURSE_ID')
         }
 
         // Check if course exists
         const [courseExists] = await db.query('SELECT 1 FROM courses WHERE course_id = ?', [course_id])
         
         if (courseExists.length === 0) {
-            return response(res, 404, null, 'Course Not Found', 'COURSE_NOT_FOUND')
+            return response(404, null, 'Course Not Found', res, 'COURSE_NOT_FOUND')
         }
 
         // Insert student
@@ -118,19 +118,24 @@ export const createStudent = async (req, res) => {
         const [result] = await db.query(insertQuery, values)
 
         if (result.affectedRows !== 1) {
-            return response(res, 400, null, 'Student not created', 'STUDENT_NOT_CREATED')
+            return response(400, null, 'Student not created', res, 'STUDENT_NOT_CREATED')
         }
 
-        return response(res, 201, result, 'Student created successfully')
+        const dataResult = {
+            dataRows: result.affectedRows,
+            dataId: result.insertId
+        }
+
+        return response(201, dataResult, 'Student created successfully', res)
 
     } catch (error) {
         console.error('[CREATE STUDENT ERROR]', error)
         
         if (error.code === 'ER_DUP_ENTRY') {
-            return response(res, 409, null, 'Duplicate entry. Please check your information.', 'DUPLICATE_STUDENT')
+            return response(409, null, 'Duplicate entry. Please check your information.', res, 'DUPLICATE_STUDENT')
         }
-        console.error('[CREATE STUDENT ERROR]', error)
-        return response(res, 503, null, 'Failed to create student', 'STUDENT_CREATE_FAILED')
+        
+        return response(500, null, 'Internal server error', res, 'SERVER_ERROR')
     }
 }
 
@@ -149,35 +154,35 @@ export const updateStudent = async (req, res) => {
 
         // Validate required fields
         if (!student_id || !matric_no || !email || !student_name || !course_id || !no_kp) {
-            return response(res, 400, null, 'Missing required fields', 'REQUIRED_ERROR')
+            return response(400, null, 'Missing required fields', res, 'REQUIRED_ERROR')
         }
 
         // Validate field formats
         if (!validId(student_id)) {
-            return response(res, 400, null, 'Invalid student id', 'INVALID_STUDENT_ID')
+            return response(400, null, 'Invalid student id', res, 'INVALID_STUDENT_ID')
         }
 
         if (!validMatricNo(matric_no)) {
-            return response(res, 400, null, 'Invalid Student Matric', 'INVALID_STUDENT_MATRIC')
+            return response(400, null, 'Invalid Student Matric', res, 'INVALID_STUDENT_MATRIC')
         }
 
         if (!validEmail(email)) {
-            return response(res, 400, null, 'Invalid email input', 'INVALID_EMAIL')
+            return response(400, null, 'Invalid email input', res, 'INVALID_EMAIL')
         }
 
         if (!validNoKp(no_kp)) {
-            return response(res, 400, null, 'Invalid No KP input', 'INVALID_NO_KP')
+            return response(400, null, 'Invalid No KP input', res, 'INVALID_NO_KP')
         }
 
         if (!validId(course_id)) {
-            return response(res, 400, null, 'Invalid Course Id', 'INVALID_COURSE_ID')
+            return response(400, null, 'Invalid Course Id', res, 'INVALID_COURSE_ID')
         }
 
         // Check if course exists
         const [courseExists] = await db.query('SELECT 1 FROM courses WHERE course_id = ?', [course_id])
         
         if (courseExists.length === 0) {
-            return response(res, 404, null, 'Course Not Found', 'COURSE_NOT_FOUND')
+            return response(404, null, 'Course Not Found', res, 'COURSE_NOT_FOUND')
         }
 
         // Update student
@@ -207,7 +212,7 @@ export const updateStudent = async (req, res) => {
         const [result] = await db.query(updateQuery, values)
 
         if (result.affectedRows === 0) {
-            return response(res, 404, null, 'Student not found', 'STUDENT_NOT_FOUND')
+            return response(404, null, 'Student not found', res, 'STUDENT_NOT_FOUND')
         }
 
         const dataResult = {
@@ -215,16 +220,16 @@ export const updateStudent = async (req, res) => {
             dataMessage: result.info
         }
 
-        return response(res, 200, dataResult, 'Student updated successfully')
+        return response(200, dataResult, 'Student updated successfully', res)
 
     } catch (error) {
         console.error('[UPDATE STUDENT ERROR]', error)
         
         if (error.code === 'ER_DUP_ENTRY') {
-            return response(res, 409, null, 'Duplicate entry. Please check your information.', 'DUPLICATE_STUDENT')
+            return response(409, null, 'Duplicate entry. Please check your information.', res, 'DUPLICATE_STUDENT')
         }
-
-        return response(res, 503, null, 'Failed to update student', 'STUDENT_UPDATE_FAILED')
+        
+        return response(500, null, 'Internal server error', res, 'SERVER_ERROR')
     }
 }
 
@@ -233,19 +238,19 @@ export const deleteStudent = async (req, res) => {
         const student_id = req.params.studentId
 
         if (!validId(student_id)) {
-            return response(res, 400, null, 'Invalid Student Id', 'INVALID_STUDENT_ID')
+            return response(400, null, 'Invalid Student Id', res, 'INVALID_STUDENT_ID')
         }
 
         const [result] = await db.query('DELETE FROM student WHERE student_id = ?', [student_id])
 
         if (result.affectedRows === 0) {
-            return response(res, 404, null, 'Student Not Found', 'STUDENT_NOT_FOUND')
+            return response(404, null, 'Student Not Found', res, 'STUDENT_NOT_FOUND')
         }
 
-        return response(res, 200, result, 'Student deleted successfully')
+        return response(200, result, 'Student deleted successfully', res)
 
     } catch (error) {
         console.error('[DELETE STUDENT ERROR]', error)
-        return response(res, 503, null, 'Failed to delete student', 'STUDENT_DELETE_FAILED')
+        return response(500, null, 'Internal server error', res, 'SERVER_ERROR')
     }
 }

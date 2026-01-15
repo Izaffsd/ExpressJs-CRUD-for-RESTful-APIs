@@ -6,7 +6,7 @@ import coursesRoutes from './courses.routes.js'
 const router = express.Router()
 
 router.get('/', (req, res) => {
-    response(200, 'Monash API Routes', 'Welcome to the Monash API', res)
+    response(200, 'Monash API Routes', 'Welcome to the API', res)
 })
 
 // Mount route modules
