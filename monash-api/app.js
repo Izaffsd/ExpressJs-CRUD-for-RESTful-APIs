@@ -1,7 +1,7 @@
 import express from 'express'
 import 'dotenv/config'
 import morgan from 'morgan'
-import routes from './routes/index.js'
+import routes from './src/routes/index.js'
 
 const app = express()
 // export app
@@ -25,6 +25,8 @@ app.use((req, res, next) => {
 })
 
 app.use(express.json()) // better than body-parser
+
+app.use(express.static('public'))
 
 app.use('/api', routes)
 
