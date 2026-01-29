@@ -1,35 +1,39 @@
 import db from '../db/connection.js'
 import { response } from '../utils/response.js'
 import { validId, validCourseCode } from '../utils/validator.js'
+import { logDbError } from '../utils/logDbError.js'
 
 export const getAllCourses = async (req, res) => {
     try {
-        const [courses] = await db.query('SELECT * FROM courses')
-        return response(res,200, courses, 'All Courses successfully')
+        const [courses] = await db.execute('SELECT * FROM courses')
+        return response(res, 200, 'Courses Retrieved successfully', courses)
     } catch (error) {
         console.error('[GET ALL COURSES ERROR]', error)
-        return response(res, 503, null, 'Failed to fetch courses', 'COURSE_FETCH_FAILED')
+        logDbError(error, req, {
+            errorCode: 'COURSE_FETCH_FAILED_503',
+        })
+        return response(res, 503, 'Failed to fetch courses', null, 'COURSE_FETCH_FAILED_503')
     }
 }
 
 export const getCourseByCode = async (req, res) => {
     try {
-        const paramas_course_code = req.params.courseCode
+        const params_course_code = req.params.courseCode
 
-        if (!validCourseCode(paramas_course_code)) {
-            return response(res, 400, null, 'Invalid Course Code', 'INVALID_COURSE_CODE')
+        if (!validCourseCode(params_course_code)) {
+            return response(res, 400, 'Invalid code. Must be at least 2 characters and uppercase.', null, 'INVALID_COURSE_CODE_400')
         }
 
-        const [result] = await db.query('SELECT * FROM courses WHERE course_code = ?', [paramas_course_code])
+        const [result] = await db.execute('SELECT * FROM courses WHERE course_code = ?', [params_course_code])
         
         if (result.length === 0) {
-            return response(res, 404, null, 'Course not found', 'COURSE_NOT_FOUND')
+            return response(res, 404, 'Course does not exist', null, 'COURSE_NOT_FOUND_404')
         }
 
-        return response(res, 200, result, 'Course by Code successfully', null)
+        return response(res, 200, 'Course by Code successfully', result[0])
     } catch (error) {
         console.error('[GET COURSE BY CODE ERROR]', error)
-        return response(res, 503, null, 'Failed to retrieve course', 'COURSE_RETRIEVE_FAILED')
+        return response(res, 503, 'Failed to retrieve course', 'COURSE_RETRIEVE_FAILED_503')
     }
 }
 
@@ -37,33 +41,37 @@ export const createCourse = async (req, res) => {
     try {
         const { course_code, course_name } = req.body
 
-        if (!course_code || !course_name) {
-            return response(res, 400, null, 'Missing required fields', 'REQUIRED_ERROR')
+        if (!course_code) {
+            return response(res, 400, 'Missing required Course Code', null, 'REQUIRED_COURSE_CODE_400')
+        }
+
+        if (!course_name) {
+            return response(res, 400, 'Missing required Course Name', null, 'REQUIRED_COURSE_NAME_400')
         }
 
         if (!validCourseCode(course_code)) {
-            return response(res, 400, null, 'Invalid Course Code', 'INVALID_COURSE_CODE')
+            return response(res, 400, 'Invalid code. Must be at least 2 characters and uppercase.', null, 'INVALID_COURSE_CODE_400')
         }
 
         const values = [course_code, course_name]
         const insertQuery = 'INSERT INTO courses (course_code, course_name) VALUES (?, ?)'
 
-        const [result] = await db.query(insertQuery, values)
+        const [result] = await db.execute(insertQuery, values)
 
         if (result.affectedRows !== 1) {
-            return response(res, 400, null, 'Course not created', 'COURSE_NOT_CREATED')
+            return response(res, 400, 'Course not created', null, 'COURSE_NOT_CREATED_400')
         }
 
-        return response(res, 201, result, 'Course created successfully')
+        return response(res, 201, 'Course created successfully', result)
 
     } catch (error) {
         console.error('[CREATE COURSE ERROR]', error)
         
         if (error.code === 'ER_DUP_ENTRY') {
-            return response(res, 409, null, 'Duplicate Course', 'DUPLICATE_COURSE')
+            return response(res, 409, 'Course Already Exists', null, 'DUPLICATE_COURSE_409')
         }
 
-        return response(res, 503, null, 'Failed to create course', 'COURSE_CREATE_FAILED')
+        return response(res, 503, 'Failed to create course', null, 'COURSE_CREATE_FAILED_503')
     }
 }
 
@@ -72,57 +80,56 @@ export const updateCourse = async (req, res) => {
         const { course_code, course_name, course_id } = req.body
 
         if (!course_code || !course_name || !course_id) {
-            return response(res, 400, null, 'Missing required fields', 'REQUIRED_ERROR')
+            return response(res, 400, 'Missing required fields', null, 'REQUIRED_ERROR_400')
         }
 
         if (!validId(course_id)) {
-            return response(res, 400, null, 'Invalid Course Id', 'INVALID_COURSE_ID')
+            return response(res, 400, 'Invalid Course Id', null, 'INVALID_COURSE_ID_400')
         }
 
         if (!validCourseCode(course_code)) {
-            return response(res, 400, null, 'Invalid Course Code', 'INVALID_COURSE_CODE')
+            return response(res, 400, 'Invalid code. Must be at least 2 characters and uppercase.', null, 'INVALID_COURSE_CODE_400')
         }
 
         const updateQuery = 'UPDATE courses SET course_code = ?, course_name = ? WHERE course_id = ?'
         const values = [course_code, course_name, course_id]
 
-        const [result] = await db.query(updateQuery, values)
+        const [result] = await db.execute(updateQuery, values)
 
         if (result.affectedRows === 0) {
-            return response(res, 404, null, 'Course Not Found', 'COURSE_NOT_FOUND')
+            return response(res, 404, 'Course does not exist', null, 'COURSE_NOT_FOUND_404')
         }
 
-        return response(res, 200, result, 'Course updated successfully')
+        return response(res, 200, 'Course updated successfully', { course_code, course_name, course_id })
 
     } catch (error) {
         console.error('[UPDATE COURSE ERROR]', error)
         
         if (error.code === 'ER_DUP_ENTRY') {
-            return response(res, 409, null, 'Duplicate Course Code', 'DUPLICATE_COURSE_CODE')
+            return response(res, 409, 'Course Code already exists', null, 'DUPLICATE_COURSE_CODE_409')
         }
 
-        return response(res, 503, null, 'Failed to update course', 'COURSE_UPDATE_FAILED')
+        return response(res, 503, 'Failed to update course', null, 'COURSE_UPDATE_FAILED_503')
     }
 }
 
 export const deleteCourse = async (req, res) => {
     try {
-        const course_Id = req.params.courseId
+        const course_id = req.params.courseId
 
-        if (!validId(course_Id)) {
-            return response(res, 400, null, 'Invalid Course Id', 'INVALID_COURSE_ID')
+        if (!validId(course_id)) {
+            return response(res, 400, 'Invalid Course Id', null, 'INVALID_COURSE_ID_400')
         }
 
-        const [result] = await db.query('DELETE FROM courses WHERE course_id = ?', [course_Id])
-
+        const [result] = await db.execute('DELETE FROM courses WHERE course_id = ?', [course_id])
         if (result.affectedRows === 0) {
-            return response(res, 404, null, 'Course Not Found', 'COURSE_NOT_FOUND')
+            return response(res, 404, 'Course does not exist', null, 'COURSE_NOT_FOUND_404')
         }
 
-        return response(res, 200, result, 'Course deleted successfully')
+        return response(res, 204, 'Course deleted successfully', { course_id } )
 
     } catch (error) {
         console.error('[DELETE COURSE ERROR]', error)
-        return response(res, 503, null, 'Failed to delete course', 'COURSE_DELETE_FAILED')
+        return response(res, 503, 'Failed to delete course', null, 'COURSE_DELETE_FAILED_503')
     }
 }

@@ -1,0 +1,135 @@
+course error
+
+# API Error Codes Reference Guide
+
+## HTTP Status Codes
+
+### Success Responses
+| Status | Meaning | Use Case |
+|--------|---------|----------|
+| **200** | OK | GET request successful, data retrieved |
+| **201** | Created | POST request successful, resource created |
+204 deleted
+### Client Errors (4xx)
+| Status | Meaning | Use Case |
+|--------|---------|----------|
+| **400** | Bad Request | Invalid input, validation failed, missing fields |
+| **404** | Not Found | Resource doesn't exist |
+| **409** | Conflict | Duplicate entry, constraint violation |
+
+### Server Errors (5xx)
+| Status | Meaning | Use Case |
+|--------|---------|----------|
+| **503** | Service Unavailable | Database error, connection lost |
+
+---
+
+## Error Codes by Category
+
+### Validation Errors (400)
+```
+
+INVALID_COURSE_ID_400           - Invalid course ID format
+Invalid Course Id
+
+INVALID_COURSE_CODE_400     - Invalid course code format 
+Invalid code. Must be at least 2 characters and uppercase.
+
+REQUIRED_COURSE_CODE_400
+Missing required Course Code
+
+REQUIRED_COURSE_NAME_400
+'Missing required Course Name
+
+COURSE_NOT_CREATED          - Insert operation failed (400)
+Course not created
+
+```
+
+### Not Found Errors (404)
+```
+
+COURSE_NOT_FOUND_404           - Course with given ID/code doesn't exist 
+Course does not exist
+```
+
+### Conflict Errors (409)
+```
+
+DUPLICATE_COURSE_409            - Course already exists (duplicate code)
+'Course Already Exists
+
+DUPLICATE_COURSE_CODE_409       - Course code already exists during update
+Course Code already exists
+```
+
+### Database/Server Errors (503)
+```
+
+
+COURSE_FETCH_FAILED_503    - getAllCourses() database error
+'Failed to fetch courses'
+
+COURSE_RETRIEVE_FAILED_503      - getCourseByCode() database error
+Failed to retrieve course
+
+COURSE_CREATE_FAILED_503        - createCourse() database error
+Failed to create course
+
+
+COURSE_UPDATE_FAILED_503        - updateCourse() database error
+Failed to update course
+
+COURSE_DELETE_FAILED        - deleteCourse() database error
+Failed to delete course
+```
+
+---
+
+
+## Common Database Errors & Solutions
+
+| Error Code | Database Error | Cause | Solution |
+|----------|----------------|-------|----------|
+| `DUPLICATE_STUDENT` | `ER_DUP_ENTRY` | Email or Matric No already exists | Check if student exists, use different values |
+| `STUDENT_FETCH_FAILED` | Connection lost | Database unavailable | Check database connection status |
+| Data truncated | Column size exceeded | String too long for column | Verify input length matches column definition |
+| `ER_BAD_FIELD_ERROR` | Unknown column 'undefined' | Sending undefined/null in UPDATE | Validate all fields before sending, don't send undefined values |
+| `ER_NO_REFERENCED_ROW` | Foreign key constraint | Course ID doesn't exist | Ensure course exists before assigning to student |
+
+---
+
+## Error Handling Flow
+
+### GET /students
+- ✅ Success (200) → Returns array of students
+- ❌ Database error (503) → STUDENT_FETCH_FAILED
+
+### GET /students/:studentId
+- ✅ Success (200) → Returns student object
+- ❌ Invalid ID (400) → INVALID_STUDENT_ID
+- ❌ Not found (404) → STUDENT_NOT_FOUND
+- ❌ Database error (503) → STUDENT_RETRIEVE_FAILED
+
+### POST /students
+- ✅ Created (201) → Returns inserted data
+- ❌ Missing fields (400) → REQUIRED_ERROR
+- ❌ Invalid format (400) → INVALID_EMAIL, INVALID_MATRIC_NO, etc.
+- ❌ Course doesn't exist (404) → COURSE_NOT_FOUND
+- ❌ Duplicate entry (409) → DUPLICATE_STUDENT
+- ❌ Database error (503) → STUDENT_CREATE_FAILED
+
+### PUT /students/:studentId
+- ✅ Updated (200) → Returns update result
+- ❌ Missing fields (400) → REQUIRED_ERROR
+- ❌ Invalid format (400) → INVALID_EMAIL, INVALID_MATRIC_NO, etc.
+- ❌ Student not found (404) → STUDENT_NOT_FOUND
+- ❌ Course doesn't exist (404) → COURSE_NOT_FOUND
+- ❌ Duplicate entry (409) → DUPLICATE_STUDENT
+- ❌ Database error (503) → STUDENT_UPDATE_FAILED
+
+### DELETE /students/:studentId
+- ✅ Deleted (200) → Returns delete result
+- ❌ Invalid ID (400) → INVALID_STUDENT_ID
+- ❌ Not found (404) → STUDENT_NOT_FOUND
+- ❌ Database error (503) → STUDENT_DELETE_FAILED
