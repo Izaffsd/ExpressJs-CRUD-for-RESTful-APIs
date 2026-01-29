@@ -12,6 +12,9 @@ npm i -D nodemon
 npm i morgan
 npm i dotenv
 
+npm install cors
+
+
 
 Run Server
 

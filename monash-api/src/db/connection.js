@@ -6,7 +6,7 @@ const db = mysql.createPool({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     connectionLimit: 10,
-    queueLimit: 0,
+    queueLimit: 50,
 })
 
 export default db
