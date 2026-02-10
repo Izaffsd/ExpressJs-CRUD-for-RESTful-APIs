@@ -1,8 +1,9 @@
 import express from 'express'
 import 'dotenv/config'
 import morgan from 'morgan'
-import routes from './src/routes/index.js'
 import cors from 'cors'
+import routes from './src/routes/index.js'
+import { errorHandler } from './src/middleware/errorHandler.js'
 
 const app = express()
 // export app
@@ -16,15 +17,26 @@ if (process.env.NODE_ENV === 'production') {
 
 // CORS Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://mydomain.com'],
+  origin: ['http://localhost:3000', 'https://devlopmentserver.com'],
   credentials: true
 }))
 
 
-app.use(express.json()) // better than body-parser
+app.use(express.json())
+
+app.use('/api', routes)
 
 app.use(express.static('public'))
 
-app.use('/api', routes)
+app.use((req, res, next) => {
+  const error = new Error(`Can't find ${req.originalUrl} on the server`)
+  error.statusCode = 404
+  error.errorCode = 'REQUEST_NOT_FOUND_404'
+  next(error)
+})
+
+// Global error handler (LAST)
+app.use(errorHandler)
+
 
 export default app

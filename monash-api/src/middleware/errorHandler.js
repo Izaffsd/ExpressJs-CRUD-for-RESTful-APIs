@@ -1,25 +1,42 @@
 import { response } from '../utils/response.js'
+import logger from '../utils/logger.js'
 
-/**
- * Global error handling middleware
- * This catches any errors that weren't handled in route handlers
- */
 export const errorHandler = (err, req, res, next) => {
-    console.error('Unhandled Error:', err.stack)
-    
-    // Database errors
-    if (err.code === 'ER_DUP_ENTRY') {
-        return response(409, null, 'Duplicate entry detected', res, 'DUPLICATE_ENTRY')
-    }
-    
-    // Default server error
-    return response(500, null, 'Internal server error', res, 'INTERNAL_ERROR')
-}
+  err.statusCode = err.statusCode || 500
+  err.errorCode = err.errorCode || 'INTERNAL_SERVER_ERROR_500'
 
-/**
- * 404 Not Found middleware
- * This catches any requests to undefined routes
- */
-export const notFoundHandler = (req, res) => {
-    return response(404, null, 'Route not found', res, 'ROUTE_NOT_FOUND')
+  // ALWAYS log full details (both dev AND production)
+  logger.error({
+    message: err.message,
+    errorCode: err.errorCode,
+    statusCode: err.statusCode,
+    stack: err.stack,
+
+    // Database errors
+    code: err.code,
+    errno: err.errno,
+    sql: err.sql || err.sqlMessage,
+    sqlState: err.sqlState,
+    
+    // Request context
+    method: req.method,
+    path: req.originalUrl,
+    params: req.params,
+    query: req.query,
+    body: req.body,
+    ip: req.ip,
+    userAgent: req.get('user-agent'),
+    
+    timestamp: new Date().toISOString()
+  })
+
+  // Response to CLIENT
+    return response(
+      res,
+      err.statusCode,
+      'Internal Server Error', // Generic message
+      null,
+      err.errorCode,
+    )
+
 }
