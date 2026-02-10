@@ -1,18 +1,14 @@
 import db from '../db/connection.js'
 import { response } from '../utils/response.js'
 import { validId, validCourseCode } from '../utils/validator.js'
-import { logDbError } from '../utils/logDbError.js'
 
-export const getAllCourses = async (req, res) => {
+export const getAllCourses = async (req, res, next) => {
     try {
         const [courses] = await db.execute('SELECT * FROM courses')
         return response(res, 200, 'Courses Retrieved successfully', courses)
     } catch (error) {
         console.error('[GET ALL COURSES ERROR]', error)
-        logDbError(error, req, {
-            errorCode: 'COURSE_FETCH_FAILED_503',
-        })
-        return response(res, 503, 'Failed to fetch courses', null, 'COURSE_FETCH_FAILED_503')
+        next(error)
     }
 }
 
@@ -33,11 +29,10 @@ export const getCourseByCode = async (req, res) => {
         return response(res, 200, 'Course by Code successfully', result[0])
     } catch (error) {
         console.error('[GET COURSE BY CODE ERROR]', error)
-        return response(res, 503, 'Failed to retrieve course', 'COURSE_RETRIEVE_FAILED_503')
     }
 }
 
-export const createCourse = async (req, res) => {
+export const createCourse = async (req, res, next) => {
     try {
         const { course_code, course_name } = req.body
 
@@ -65,17 +60,17 @@ export const createCourse = async (req, res) => {
         return response(res, 201, 'Course created successfully', result)
 
     } catch (error) {
-        console.error('[CREATE COURSE ERROR]', error)
-        
         if (error.code === 'ER_DUP_ENTRY') {
             return response(res, 409, 'Course Already Exists', null, 'DUPLICATE_COURSE_409')
         }
 
-        return response(res, 503, 'Failed to create course', null, 'COURSE_CREATE_FAILED_503')
+        console.error('[CREATE COURSE ERROR]', error)
+        next(error)
+
     }
 }
 
-export const updateCourse = async (req, res) => {
+export const updateCourse = async (req, res, next) => {
     try {
         const { course_code, course_name, course_id } = req.body
 
@@ -103,17 +98,16 @@ export const updateCourse = async (req, res) => {
         return response(res, 200, 'Course updated successfully', { course_code, course_name, course_id })
 
     } catch (error) {
-        console.error('[UPDATE COURSE ERROR]', error)
-        
         if (error.code === 'ER_DUP_ENTRY') {
             return response(res, 409, 'Course Code already exists', null, 'DUPLICATE_COURSE_CODE_409')
         }
 
-        return response(res, 503, 'Failed to update course', null, 'COURSE_UPDATE_FAILED_503')
+        console.error('[UPDATE COURSE ERROR]', error)
+        next(error)
     }
 }
 
-export const deleteCourse = async (req, res) => {
+export const deleteCourse = async (req, res, next) => {
     try {
         const course_id = req.params.courseId
 
@@ -126,10 +120,10 @@ export const deleteCourse = async (req, res) => {
             return response(res, 404, 'Course does not exist', null, 'COURSE_NOT_FOUND_404')
         }
 
-        return response(res, 204, 'Course deleted successfully', { course_id } )
+        return response(res, 204, 'Course deleted successfully', null)
 
     } catch (error) {
         console.error('[DELETE COURSE ERROR]', error)
-        return response(res, 503, 'Failed to delete course', null, 'COURSE_DELETE_FAILED_503')
+        next(error)
     }
 }
