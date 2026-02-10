@@ -109,7 +109,7 @@ export const createStudent = async (req, res, next) => {
             return response(res, 400, 'Student not created', null, 'STUDENT_NOT_CREATED_400')
         }
 
-        return response(res, 201, 'Student created successfully', result)
+        return response(res, 201, 'Student created successfully', result.insertId)
 
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {

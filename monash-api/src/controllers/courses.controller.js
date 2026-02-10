@@ -57,7 +57,7 @@ export const createCourse = async (req, res, next) => {
             return response(res, 400, 'Course not created', null, 'COURSE_NOT_CREATED_400')
         }
 
-        return response(res, 201, 'Course created successfully', result)
+        return response(res, 201, 'Course created successfully', result.insertId)
 
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
