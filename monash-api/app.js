@@ -29,9 +29,9 @@ app.use('/api', routes)
 app.use(express.static('public'))
 
 app.use((req, res, next) => {
-  const error = new Error(`Can't find ${req.originalUrl} on the server`)
+  const error = new Error(`Resource not found`)
   error.statusCode = 404
-  error.errorCode = 'REQUEST_NOT_FOUND_404'
+  error.errorCode = 'RESOURCE_NOT_FOUND_404'
   next(error)
 })
 

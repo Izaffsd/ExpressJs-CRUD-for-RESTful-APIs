@@ -2,7 +2,6 @@ import express from 'express'
 import {
     getAllStudents,
     getStudentById,
-    // getStudentByMatricNo,
     createStudent,
     updateStudent,
     deleteStudent

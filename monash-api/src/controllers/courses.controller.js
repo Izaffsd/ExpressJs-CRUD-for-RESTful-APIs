@@ -12,7 +12,7 @@ export const getAllCourses = async (req, res, next) => {
     }
 }
 
-export const getCourseByCode = async (req, res) => {
+export const getCourseByCode = async (req, res, next) => {
     try {
         const params_course_code = req.params.courseCode
 
@@ -29,6 +29,7 @@ export const getCourseByCode = async (req, res) => {
         return response(res, 200, 'Course by Code successfully', result[0] || null)
     } catch (error) {
         console.error('[GET COURSE BY CODE ERROR]', error)
+        next(error)
     }
 }
 

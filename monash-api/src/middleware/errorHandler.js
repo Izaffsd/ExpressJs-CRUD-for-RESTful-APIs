@@ -34,9 +34,9 @@ export const errorHandler = (err, req, res, next) => {
     return response(
       res,
       err.statusCode,
-      'Internal Server Error', // Generic message
+      err.message || 'Internal Server Error', // Generic message
       null,
-      err.errorCode,
+      err.errorCode || 'INTERNAL_SERVER_ERROR_500',
     )
 
 }
