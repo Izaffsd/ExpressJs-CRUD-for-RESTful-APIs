@@ -4,7 +4,14 @@ import { validMyKadNumber, validEmail, validId, validStudentNumber } from '../ut
 
 export const getAllStudents = async (req, res, next) => {
     try {
-        const [students] = await db.execute('SELECT * FROM student')
+        const query = `
+            SELECT
+                s.*,
+                c.*
+            FROM student s
+            LEFT JOIN courses c USING (course_id)
+        `
+        const [students] = await db.execute(query)
         return response(res, 200, 'Students Retrieved successfully', students)
     } catch (error) {
         console.error('[GET ALL STUDENTS ERROR]', error)
@@ -15,18 +22,26 @@ export const getAllStudents = async (req, res, next) => {
 export const getStudentById = async (req, res, next) => {
     try {
         const student_id = req.params.studentId
+        const query = `
+            SELECT
+                s.*,
+                c.*
+            FROM student s
+            LEFT JOIN courses c USING (course_id)
+            WHERE s.student_id = ?
+            `
 
         if (!validId(student_id)) {
             return response(res, 400, 'Invalid student id', null, 'INVALID_STUDENT_ID_400')
         }
 
-        const [result] = await db.execute('SELECT * FROM student WHERE student_id = ?', [student_id])
+        const [result] = await db.execute(query, [student_id])
 
         if (result.length === 0) {
             return response(res, 404, 'Student does not exist', null, 'STUDENT_NOT_FOUND_404')
         }
 
-        return response(res, 200, 'Student by Id successfully', result[0])
+        return response(res, 200, 'Student by Id successfully', result[0] || null)
     } catch (error) {
         console.error('[GET STUDENT BY ID ERROR]', error)
         next(error)
@@ -109,7 +124,7 @@ export const createStudent = async (req, res, next) => {
             return response(res, 400, 'Student not created', null, 'STUDENT_NOT_CREATED_400')
         }
 
-        return response(res, 201, 'Student created successfully', result.insertId)
+        return response(res, 201, 'Student created successfully', { student_id: result.insertId, student_number: student_number || null })
 
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
@@ -125,9 +140,7 @@ export const updateStudent = async (req, res, next) => {
     try {
         const {
             student_id,
-            student_number,
             mykad_number,
-            email,
             student_name,
             address,
             gender,
@@ -135,7 +148,7 @@ export const updateStudent = async (req, res, next) => {
         } = req.body
 
         // Validate required fields
-        if (!student_id || !student_number || !mykad_number || !email || !student_name || !course_id) {
+        if (!student_id || !mykad_number || !student_name || !course_id) {
             return response(res, 400, 'Missing required fields', null, 'REQUIRED_ERROR_400')
         }
 
@@ -144,13 +157,6 @@ export const updateStudent = async (req, res, next) => {
             return response(res, 400, 'Invalid student id', null, 'INVALID_STUDENT_ID_400')
         }
 
-        if (!validStudentNumber(student_number)) {
-            return response(res, 400, 'Invalid Student Matric', null, 'INVALID_STUDENT_MATRIC_400')
-        }
-
-        if (!validEmail(email)) {
-            return response(res, 400, 'Invalid email input', null, 'INVALID_EMAIL_400')
-        }
 
         if (!validMyKadNumber(mykad_number)) {
             return response(res, 400, 'Invalid MyKad number. Must be 12 digits (YYMMDDxxxxxx).', null, 'INVALID_MYKAD_NUMBER_400')
@@ -168,12 +174,10 @@ export const updateStudent = async (req, res, next) => {
         }
 
         // Update student
-        const updateQuery = `UPDATE student SET student_number = ?, mykad_number = ?, email = ?, student_name = ?, address = ?, gender = ?, course_id = ? WHERE student_id = ?`
+        const updateQuery = `UPDATE student SET mykad_number = ?, student_name = ?, address = ?, gender = ?, course_id = ? WHERE student_id = ?`
 
         const values = [
-            student_number,
             mykad_number,
-            email,
             student_name,
             address || null,
             gender || null,
@@ -187,16 +191,7 @@ export const updateStudent = async (req, res, next) => {
             return response(res, 404, 'Student does not exist', null, 'STUDENT_NOT_FOUND_404')
         }
 
-        return response(res, 200, 'Student updated successfully',  {
-            student_id,
-            student_number,
-            mykad_number,
-            email,
-            student_name,
-            address,
-            gender,
-            course_id
-        })
+        return response(res, 200, 'Student updated successfully', { updated: result.affectedRows > 0, student_id: student_id })
 
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {

@@ -26,7 +26,7 @@ export const getCourseByCode = async (req, res) => {
             return response(res, 404, 'Course does not exist', null, 'COURSE_NOT_FOUND_404')
         }
 
-        return response(res, 200, 'Course by Code successfully', result[0])
+        return response(res, 200, 'Course by Code successfully', result[0] || null)
     } catch (error) {
         console.error('[GET COURSE BY CODE ERROR]', error)
     }
