@@ -31,12 +31,14 @@ export const errorHandler = (err, req, res, next) => {
   })
 
   // Response to CLIENT
+  if (err.errorCode === 'RESOURCE_NOT_FOUND_404') return response(res, 404, 'Resource not found', null, 'RESOURCE_NOT_FOUND_404')
+
     return response(
       res,
       err.statusCode,
-      err.message || 'Internal Server Error', // Generic message
+      'Internal Server Error', // Generic message
       null,
-      err.errorCode || 'INTERNAL_SERVER_ERROR_500',
+      'INTERNAL_SERVER_ERROR_500',
     )
 
 }

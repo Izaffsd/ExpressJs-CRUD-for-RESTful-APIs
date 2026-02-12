@@ -6,7 +6,6 @@ import routes from './src/routes/index.js'
 import { errorHandler } from './src/middleware/errorHandler.js'
 
 const app = express()
-// export app
 
 // Middleware
 if (process.env.NODE_ENV === 'production') {
@@ -21,13 +20,14 @@ app.use(cors({
   credentials: true
 }))
 
-
+// client sent json -> auto parse to JS object
 app.use(express.json())
 
 app.use('/api', routes)
 
 app.use(express.static('public'))
 
+// all routes 404 handler
 app.use((req, res, next) => {
   const error = new Error(`Resource not found`)
   error.statusCode = 404

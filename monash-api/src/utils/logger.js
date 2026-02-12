@@ -1,30 +1,25 @@
 import winston from 'winston'
 
 const logger = winston.createLogger({
-  level: 'info',
+  level: 'error', // (matching usage in errorHandler)
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.json()
   ),
   transports: [
-    // error only
+    // Log errors to file
     new winston.transports.File({
       filename: 'logs/error.log',
-      level: 'error',
-    }),
-
-    // // all log
-    // new winston.transports.File({
-    //   filename: 'logs/combined.log',
-    // }),
-  ],
+      level: 'error'
+    })
+  ]
 })
 
-// Console hanya untuk dev
+// Console output for development only
 if (process.env.NODE_ENV !== 'production') {
   logger.add(
     new winston.transports.Console({
-      format: winston.format.simple(),
+      format: winston.format.simple()
     })
   )
 }

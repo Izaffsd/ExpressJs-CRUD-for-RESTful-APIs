@@ -1,6 +1,7 @@
 import express from 'express'
 import studentsRoutes from './students.routes.js'
 import coursesRoutes from './courses.routes.js'
+// import authRoutes from './auth.route.js'
 
 const router = express.Router()
 
@@ -15,6 +16,7 @@ router.get('/', (req, res) => {
 // Mount route modules
 router.use(studentsRoutes)
 router.use(coursesRoutes)
+// router.use('/auth/', authRoutes)
 
 
 export default router

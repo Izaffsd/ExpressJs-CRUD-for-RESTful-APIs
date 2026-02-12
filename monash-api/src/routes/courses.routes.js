@@ -6,20 +6,27 @@ import {
     updateCourse,
     deleteCourse
 } from '../controllers/courses.controller.js'
+import { validateZod } from '../middleware/validateZod.js'
+import {
+    getCourseByCodeSchema,
+    createCourseSchema,
+    updateCourseSchema,
+    deleteCourseSchema
+} from '../utils/courseValidation.js'
 
 const router = express.Router()
 
 // GET routes
 router.get('/courses', getAllCourses)
-router.get('/courses/:courseCode', getCourseByCode)
+router.get('/courses/:courseCode', validateZod(getCourseByCodeSchema, 'params'), getCourseByCode)
 
 // POST routes
-router.post('/courses', createCourse)
+router.post('/courses', validateZod(createCourseSchema, 'body'), createCourse)
 
 // PUT routes
-router.put('/courses', updateCourse)
+router.put('/courses', validateZod(updateCourseSchema, 'body'), updateCourse)
 
 // DELETE routes
-router.delete('/courses/:courseId', deleteCourse)
+router.delete('/courses/:courseId', validateZod(deleteCourseSchema, 'params'), deleteCourse)
 
 export default router

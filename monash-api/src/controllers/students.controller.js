@@ -1,6 +1,6 @@
 import db from '../db/connection.js'
 import { response } from '../utils/response.js'
-import { validMyKadNumber, validEmail, validId, validStudentNumber } from '../utils/validator.js'
+import { extractStudentNumberPrefix } from '../utils/studentValidation.js'
 
 export const getAllStudents = async (req, res, next) => {
     try {
@@ -31,10 +31,6 @@ export const getStudentById = async (req, res, next) => {
             WHERE s.student_id = ?
             `
 
-        if (!validId(student_id)) {
-            return response(res, 400, 'Invalid student id', null, 'INVALID_STUDENT_ID_400')
-        }
-
         const [result] = await db.execute(query, [student_id])
 
         if (result.length === 0) {
@@ -50,60 +46,27 @@ export const getStudentById = async (req, res, next) => {
 
 export const createStudent = async (req, res, next) => {
     try {
+        // Data is already validated by Zod middleware
         const {
             student_number,
             mykad_number,
             email,
             student_name,
             address,
-            gender,
-            course_id
+            gender
         } = req.body
 
-        // Validate required fields
-        if (!student_number) {
-            return response(res, 400, 'Missing required Matric Number', null, 'REQUIRED_MATRIC_NUMBER_400')
-        }
+        // Auto-detect course_id from student_number prefix
+        const prefix = extractStudentNumberPrefix(student_number)
 
-        if (!mykad_number) {
-            return response(res, 400, 'Missing required MyKad Number', null, 'REQUIRED_MYKAD_NUMBER_400')
-        }
+        // get course_id from course_code
+        const [courseResult] = await db.execute('SELECT course_id FROM courses WHERE course_code = ?', [prefix])
 
-        if (!email) {
-            return response(res, 400, 'Missing required Email', null, 'REQUIRED_EMAIL_400')
-        }
-
-        if (!student_name) {
-            return response(res, 400, 'Missing required Student Name', null, 'REQUIRED_STUDENT_NAME_400')
-        }
-
-        if (!course_id) {
-            return response(res, 400, 'Missing required Course ID', null, 'REQUIRED_COURSE_ID_400')
-        }
-
-        // Validate field formats
-        if (!validStudentNumber(student_number)) {
-            return response(res, 400, 'Invalid Student Matric', null, 'INVALID_STUDENT_MATRIC_400')
-        }
-
-        if (!validEmail(email)) {
-            return response(res, 400, 'Invalid email input', null, 'INVALID_EMAIL_400')
-        }
-
-        if (!validMyKadNumber(mykad_number)) {
-            return response(res, 400, 'Invalid MyKad number. Must be 12 digits (YYMMDDxxxxxx).', null, 'INVALID_MYKAD_NUMBER_400')
-        }
-
-        if (!validId(course_id)) {
-            return response(res, 400, 'Invalid Course Id', null, 'INVALID_COURSE_ID_400')
-        }
-
-        // Check if course exists
-        const [courseExists] = await db.execute('SELECT 1 FROM courses WHERE course_id = ?', [course_id])
-        
-        if (courseExists.length === 0) {
+        if (courseResult.length === 0) {
             return response(res, 404, 'Course does not exists', null, 'COURSE_NOT_FOUND_404')
         }
+
+        const course_id = courseResult[0].course_id
 
         // Insert student
         const insertQuery = `INSERT INTO student (student_number, mykad_number, email, student_name, address, gender, course_id) VALUES (?, ?, ?, ?, ?, ?, ?)`
@@ -124,7 +87,12 @@ export const createStudent = async (req, res, next) => {
             return response(res, 400, 'Student not created', null, 'STUDENT_NOT_CREATED_400')
         }
 
-        return response(res, 201, 'Student created successfully', { student_id: result.insertId, student_number: student_number || null })
+        return response(res, 201, 'Student created successfully', {
+            student_id: result.insertId,
+            student_number: student_number,
+            course_id: course_id,
+            course_code: prefix
+        })
 
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
@@ -138,6 +106,7 @@ export const createStudent = async (req, res, next) => {
 
 export const updateStudent = async (req, res, next) => {
     try {
+        // Data is already validated by Zod middleware
         const {
             student_id,
             mykad_number,
@@ -146,25 +115,6 @@ export const updateStudent = async (req, res, next) => {
             gender,
             course_id
         } = req.body
-
-        // Validate required fields
-        if (!student_id || !mykad_number || !student_name || !course_id) {
-            return response(res, 400, 'Missing required fields', null, 'REQUIRED_ERROR_400')
-        }
-
-        // Validate field formats
-        if (!validId(student_id)) {
-            return response(res, 400, 'Invalid student id', null, 'INVALID_STUDENT_ID_400')
-        }
-
-
-        if (!validMyKadNumber(mykad_number)) {
-            return response(res, 400, 'Invalid MyKad number. Must be 12 digits (YYMMDDxxxxxx).', null, 'INVALID_MYKAD_NUMBER_400')
-        }
-
-        if (!validId(course_id)) {
-            return response(res, 400, 'Invalid Course Id', null, 'INVALID_COURSE_ID_400')
-        }
 
         // Check if course exists
         const [courseExists] = await db.execute('SELECT 1 FROM courses WHERE course_id = ?', [course_id])
@@ -205,11 +155,8 @@ export const updateStudent = async (req, res, next) => {
 
 export const deleteStudent = async (req, res, next) => {
     try {
+        // Data is already validated by Zod middleware
         const student_id = req.params.studentId
-
-        if (!validId(student_id)) {
-            return response(res, 400, 'Invalid Student Id', null, 'INVALID_STUDENT_ID_400')
-        }
 
         const [result] = await db.execute('DELETE FROM student WHERE student_id = ?', [student_id])
 

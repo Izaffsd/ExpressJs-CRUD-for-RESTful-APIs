@@ -16,10 +16,10 @@
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
-    "joi": "^18.0.2",
     "morgan": "^1.10.1",
     "mysql2": "^3.16.0",
-    "winston": "^3.19.0"
+    "winston": "^3.19.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"
