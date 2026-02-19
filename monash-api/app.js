@@ -27,7 +27,7 @@ app.use('/api', routes)
 
 app.use(express.static('public'))
 
-// all routes 404 handler
+// all routes 404 handler (create error)
 app.use((req, res, next) => {
   const error = new Error(`Resource not found`)
   error.statusCode = 404

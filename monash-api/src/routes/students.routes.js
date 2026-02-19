@@ -12,7 +12,7 @@ import {
     createStudentSchema,
     updateStudentSchema,
     deleteStudentSchema
-} from '../utils/studentValidation.js'
+} from '../validations/studentValidation.js'
 
 const router = express.Router()
 

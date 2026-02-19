@@ -1,9 +1,34 @@
 import { response } from '../utils/response.js'
 import logger from '../utils/logger.js'
 
+export const MYSQL_ERRORS = {
+
+  ER_DUP_ENTRY: (err) => {
+    const match = err.message.match(/Duplicate entry '(.+?)'/)
+    const value = match ? match[1] : 'Record'
+
+    return {
+      status: 409,
+      message: `'${value}' already exists`,
+      errorCode: 'DUPLICATE_RECORD_409'
+    }
+  },
+
+  ER_NO_REFERENCED_ROW_2: () => ({
+    status: 400,
+    message: 'Referenced record does not exist',
+    errorCode: 'INVALID_REFERENCE_400'
+  }),
+
+  ER_ROW_IS_REFERENCED_2: () => ({
+    status: 409,
+    message: 'Cannot delete this record because it is being used by other data',
+    errorCode: 'RECORD_IN_USE_409'
+  })
+}
+
 export const errorHandler = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500
-  err.errorCode = err.errorCode || 'INTERNAL_SERVER_ERROR_500'
 
   // ALWAYS log full details (both dev AND production)
   logger.error({
@@ -32,6 +57,12 @@ export const errorHandler = (err, req, res, next) => {
 
   // Response to CLIENT
   if (err.errorCode === 'RESOURCE_NOT_FOUND_404') return response(res, 404, 'Resource not found', null, 'RESOURCE_NOT_FOUND_404')
+
+  const mysqlHandler = MYSQL_ERRORS[err.code]
+  if (mysqlHandler) {
+    const mysql = mysqlHandler(err)
+    return response(res, mysql.status, mysql.message, null, mysql.errorCode)
+  }
 
     return response(
       res,

@@ -1,6 +1,6 @@
-import db from '../db/connection.js'
+import db from '../config/connection.js'
 import { response } from '../utils/response.js'
-import { extractStudentNumberPrefix } from '../utils/studentValidation.js'
+import { extractStudentNumberPrefix } from '../validations/studentValidation.js'
 
 export const getAllStudents = async (req, res, next) => {
     try {
@@ -18,7 +18,6 @@ export const getAllStudents = async (req, res, next) => {
         // response() utility automatically transforms to camelCase
         return response(res, 200, 'Students Retrieved successfully', students)
     } catch (error) {
-        console.error('[GET ALL STUDENTS ERROR]', error)
         next(error)
     }
 }
@@ -48,7 +47,6 @@ export const getStudentById = async (req, res, next) => {
         // response() utility automatically transforms to camelCase
         return response(res, 200, 'Student retrieved successfully', result[0] || null)
     } catch (error) {
-        console.error('[GET STUDENT BY ID ERROR]', error)
         next(error)
     }
 }
@@ -79,7 +77,7 @@ export const createStudent = async (req, res, next) => {
             return response(res, 404, 'Course does not exist', null, 'COURSE_NOT_FOUND_404')
         }
 
-        const course_id = courseResult[0].course_id
+        const course_id = courseResult[0].course_id  // [ { course_id: 4 } ]
 
         // Insert student
         const insertQuery = `
@@ -113,11 +111,6 @@ export const createStudent = async (req, res, next) => {
         })
 
     } catch (error) {
-        if (error.code === 'ER_DUP_ENTRY') {
-            return response(res, 409, 'Student Already Exists', null, 'DUPLICATE_STUDENT_409')
-        }
-
-        console.error('[CREATE STUDENT ERROR]', error)
         next(error)
     }
 }
@@ -132,23 +125,28 @@ export const updateStudent = async (req, res, next) => {
             student_name,
             address,
             gender,
-            course_id
+            student_number,
         } = req.body
 
-        // Check if course exists
+        const prefix = extractStudentNumberPrefix(student_number)
+
+        // Get course_id from course_code
         const [courseExists] = await db.execute(
-            'SELECT 1 FROM courses WHERE course_id = ?',
-            [course_id]
+            'SELECT course_id FROM courses WHERE course_code = ?',
+            [prefix]
         )
 
+        
         if (courseExists.length === 0) {
             return response(res, 404, 'Course does not exist', null, 'COURSE_NOT_FOUND_404')
         }
+        
+        const course_id = courseExists[0].course_id
 
         // Update student
         const updateQuery = `
             UPDATE student 
-            SET mykad_number = ?, student_name = ?, address = ?, gender = ?, course_id = ? 
+            SET mykad_number = ?, student_name = ?, address = ?, gender = ?, student_number = ?, course_id = ? 
             WHERE student_id = ?
         `
 
@@ -157,6 +155,7 @@ export const updateStudent = async (req, res, next) => {
             student_name,
             address || null,
             gender || null,
+            student_number,
             course_id,
             student_id
         ]
@@ -174,11 +173,6 @@ export const updateStudent = async (req, res, next) => {
         })
 
     } catch (error) {
-        if (error.code === 'ER_DUP_ENTRY') {
-            return response(res, 409, 'Student already exists', null, 'DUPLICATE_STUDENT_409')
-        }
-
-        console.error('[UPDATE STUDENT ERROR]', error)
         next(error)
     }
 }
@@ -201,7 +195,6 @@ export const deleteStudent = async (req, res, next) => {
         return response(res, 200, 'Student deleted successfully', null)
 
     } catch (error) {
-        console.error('[DELETE STUDENT ERROR]', error)
         next(error)
     }
 }

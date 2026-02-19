@@ -1,4 +1,4 @@
-import db from '../db/connection.js'
+import db from '../config/connection.js'
 import { response } from '../utils/response.js'
 
 export const getAllCourses = async (req, res, next) => {
@@ -57,9 +57,6 @@ export const createCourse = async (req, res, next) => {
             course_name: course_name
         })
     } catch (error) {
-        if (error.code === 'ER_DUP_ENTRY') {
-            return response(res, 409, 'Course Already Exists', null, 'DUPLICATE_COURSE_409')
-        }
         console.error('[CREATE COURSE ERROR]', error)
         next(error)
     }
@@ -87,9 +84,6 @@ export const updateCourse = async (req, res, next) => {
             course_id
         })
     } catch (error) {
-        if (error.code === 'ER_DUP_ENTRY') {
-            return response(res, 409, 'Course Code already exists', null, 'DUPLICATE_COURSE_CODE_409')
-        }
         console.error('[UPDATE COURSE ERROR]', error)
         next(error)
     }
@@ -112,9 +106,6 @@ export const deleteCourse = async (req, res, next) => {
         
         return response(res, 200, 'Course deleted successfully', null)
     } catch (error) {
-        if (error.code === 'ER_ROW_IS_REFERENCED_2') {
-            return response(res, 409, 'Course is referenced by a student', null, 'COURSE_REFERENCED_BY_STUDENT_409')
-        }
         console.error('[DELETE COURSE ERROR]', error)
         next(error)
     }

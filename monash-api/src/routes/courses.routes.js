@@ -12,7 +12,7 @@ import {
     createCourseSchema,
     updateCourseSchema,
     deleteCourseSchema
-} from '../utils/courseValidation.js'
+} from '../validations/courseValidation.js'
 
 const router = express.Router()
 
