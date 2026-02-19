@@ -18,7 +18,7 @@ const router = express.Router()
 
 // GET routes
 router.get('/courses', getAllCourses)
-router.get('/courses/:courseCode', validateZod(getCourseByCodeSchema, 'params'), getCourseByCode)
+router.get('/courses/:course_code', validateZod(getCourseByCodeSchema, 'params'), getCourseByCode)
 
 // POST routes
 router.post('/courses', validateZod(createCourseSchema, 'body'), createCourse)
@@ -27,6 +27,6 @@ router.post('/courses', validateZod(createCourseSchema, 'body'), createCourse)
 router.put('/courses', validateZod(updateCourseSchema, 'body'), updateCourse)
 
 // DELETE routes
-router.delete('/courses/:courseId', validateZod(deleteCourseSchema, 'params'), deleteCourse)
+router.delete('/courses/:course_id', validateZod(deleteCourseSchema, 'params'), deleteCourse)
 
 export default router

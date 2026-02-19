@@ -13,11 +13,13 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "camelcase-keys": "^10.0.2",
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "morgan": "^1.10.1",
     "mysql2": "^3.16.0",
+    "snake-keys": "^3.0.0",
     "winston": "^3.19.0",
     "zod": "^4.3.6"
   },

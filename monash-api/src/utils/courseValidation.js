@@ -24,7 +24,7 @@ const courseId = z.number()
 
 // Schemas
 export const getCourseByCodeSchema = z.object({
-  courseCode: z.string()
+  course_code: z.string()
     .min(1, 'Course code is required')
     .transform(codeChars => codeChars.toUpperCase().trim())
     .refine(codeChars => /^[A-Z]{2,4}$/.test(codeChars), {
@@ -33,7 +33,7 @@ export const getCourseByCodeSchema = z.object({
 })
 
 export const deleteCourseSchema = z.object({
-  courseId: idParam
+  course_id: idParam
 })
 
 export const createCourseSchema = z.object({

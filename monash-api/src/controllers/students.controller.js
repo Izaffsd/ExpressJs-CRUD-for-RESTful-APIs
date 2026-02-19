@@ -7,11 +7,15 @@ export const getAllStudents = async (req, res, next) => {
         const query = `
             SELECT
                 s.*,
-                c.*
+                c.course_id,
+                c.course_code,
+                c.course_name
             FROM student s
             LEFT JOIN courses c USING (course_id)
         `
         const [students] = await db.execute(query)
+        
+        // response() utility automatically transforms to camelCase
         return response(res, 200, 'Students Retrieved successfully', students)
     } catch (error) {
         console.error('[GET ALL STUDENTS ERROR]', error)
@@ -21,15 +25,19 @@ export const getAllStudents = async (req, res, next) => {
 
 export const getStudentById = async (req, res, next) => {
     try {
-        const student_id = req.params.studentId
+        // req.params is already transformed to snake_case by middleware
+        const student_id = req.params.student_id
+        
         const query = `
             SELECT
                 s.*,
-                c.*
+                c.course_id,
+                c.course_code,
+                c.course_name
             FROM student s
             LEFT JOIN courses c USING (course_id)
             WHERE s.student_id = ?
-            `
+        `
 
         const [result] = await db.execute(query, [student_id])
 
@@ -37,7 +45,8 @@ export const getStudentById = async (req, res, next) => {
             return response(res, 404, 'Student does not exist', null, 'STUDENT_NOT_FOUND_404')
         }
 
-        return response(res, 200, 'Student by Id successfully', result[0] || null)
+        // response() utility automatically transforms to camelCase
+        return response(res, 200, 'Student retrieved successfully', result[0] || null)
     } catch (error) {
         console.error('[GET STUDENT BY ID ERROR]', error)
         next(error)
@@ -46,7 +55,8 @@ export const getStudentById = async (req, res, next) => {
 
 export const createStudent = async (req, res, next) => {
     try {
-        // Data is already validated by Zod middleware
+        // req.body is already transformed to snake_case by middleware
+        // and validated by Zod
         const {
             student_number,
             mykad_number,
@@ -59,17 +69,24 @@ export const createStudent = async (req, res, next) => {
         // Auto-detect course_id from student_number prefix
         const prefix = extractStudentNumberPrefix(student_number)
 
-        // get course_id from course_code
-        const [courseResult] = await db.execute('SELECT course_id FROM courses WHERE course_code = ?', [prefix])
+        // Get course_id from course_code
+        const [courseResult] = await db.execute(
+            'SELECT course_id FROM courses WHERE course_code = ?',
+            [prefix]
+        )
 
         if (courseResult.length === 0) {
-            return response(res, 404, 'Course does not exists', null, 'COURSE_NOT_FOUND_404')
+            return response(res, 404, 'Course does not exist', null, 'COURSE_NOT_FOUND_404')
         }
 
         const course_id = courseResult[0].course_id
 
         // Insert student
-        const insertQuery = `INSERT INTO student (student_number, mykad_number, email, student_name, address, gender, course_id) VALUES (?, ?, ?, ?, ?, ?, ?)`
+        const insertQuery = `
+            INSERT INTO student 
+            (student_number, mykad_number, email, student_name, address, gender, course_id) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `
 
         const values = [
             student_number,
@@ -87,6 +104,7 @@ export const createStudent = async (req, res, next) => {
             return response(res, 400, 'Student not created', null, 'STUDENT_NOT_CREATED_400')
         }
 
+        // response() utility automatically transforms to camelCase
         return response(res, 201, 'Student created successfully', {
             student_id: result.insertId,
             student_number: student_number,
@@ -106,7 +124,8 @@ export const createStudent = async (req, res, next) => {
 
 export const updateStudent = async (req, res, next) => {
     try {
-        // Data is already validated by Zod middleware
+        // req.body is already transformed to snake_case by middleware
+        // and validated by Zod
         const {
             student_id,
             mykad_number,
@@ -117,14 +136,21 @@ export const updateStudent = async (req, res, next) => {
         } = req.body
 
         // Check if course exists
-        const [courseExists] = await db.execute('SELECT 1 FROM courses WHERE course_id = ?', [course_id])
+        const [courseExists] = await db.execute(
+            'SELECT 1 FROM courses WHERE course_id = ?',
+            [course_id]
+        )
 
         if (courseExists.length === 0) {
-            return response(res, 404, 'Course does not exists', null, 'COURSE_NOT_FOUND_404')
+            return response(res, 404, 'Course does not exist', null, 'COURSE_NOT_FOUND_404')
         }
 
         // Update student
-        const updateQuery = `UPDATE student SET mykad_number = ?, student_name = ?, address = ?, gender = ?, course_id = ? WHERE student_id = ?`
+        const updateQuery = `
+            UPDATE student 
+            SET mykad_number = ?, student_name = ?, address = ?, gender = ?, course_id = ? 
+            WHERE student_id = ?
+        `
 
         const values = [
             mykad_number,
@@ -141,7 +167,11 @@ export const updateStudent = async (req, res, next) => {
             return response(res, 404, 'Student does not exist', null, 'STUDENT_NOT_FOUND_404')
         }
 
-        return response(res, 200, 'Student updated successfully', { updated: result.affectedRows > 0, student_id: student_id })
+        // response() utility automatically transforms to camelCase
+        return response(res, 200, 'Student updated successfully', {
+            updated: result.affectedRows > 0,
+            student_id: student_id
+        })
 
     } catch (error) {
         if (error.code === 'ER_DUP_ENTRY') {
@@ -155,10 +185,14 @@ export const updateStudent = async (req, res, next) => {
 
 export const deleteStudent = async (req, res, next) => {
     try {
-        // Data is already validated by Zod middleware
-        const student_id = req.params.studentId
+        // req.params is already transformed to snake_case by middleware
+        // and validated by Zod
+        const student_id = req.params.student_id
 
-        const [result] = await db.execute('DELETE FROM student WHERE student_id = ?', [student_id])
+        const [result] = await db.execute(
+            'DELETE FROM student WHERE student_id = ?',
+            [student_id]
+        )
 
         if (result.affectedRows === 0) {
             return response(res, 404, 'Student does not exist', null, 'STUDENT_NOT_FOUND_404')

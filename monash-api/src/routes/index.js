@@ -1,7 +1,7 @@
 import express from 'express'
 import studentsRoutes from './students.routes.js'
 import coursesRoutes from './courses.routes.js'
-// import authRoutes from './auth.route.js'
+import { transformRequest } from '../middleware/transformRequest.middleware.js'
 
 const router = express.Router()
 
@@ -12,6 +12,10 @@ router.get('/', (req, res) => {
         timestamp: new Date().toISOString()
     })
 })
+
+// Frontend sends camelCase → middleware converts request body to snake_case for all routes
+router.use(transformRequest)
+
 
 // Mount route modules
 router.use(studentsRoutes)

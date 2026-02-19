@@ -1,3 +1,5 @@
+import { toCamelCase } from './caseTransform.js'
+
 export const response = (
   res,
   statusCode,
@@ -6,7 +8,6 @@ export const response = (
   errorCode = null,
   errors = []
 ) => {
-
   const success = statusCode < 400
   const resBody = {
     statusCode,
@@ -16,7 +17,8 @@ export const response = (
 
  // Include data only for successful responses (data is null for actions like DELETE)
   if (success && data !== null) {
-    resBody.data = data
+    // Transform data to camelCase before sending
+    resBody.data = toCamelCase(data)
   }
 
   // Include error details only for failed responses

@@ -49,7 +49,7 @@ const courseId = z.number()
 
 // Schemas
 export const getStudentByIdSchema = z.object({
-  studentId: idParam
+  student_id: idParam
 })
 
 
@@ -72,5 +72,5 @@ export const updateStudentSchema = z.object({
 })
 
 export const deleteStudentSchema = z.object({
-  studentId: idParam
+  student_id: idParam
 })
