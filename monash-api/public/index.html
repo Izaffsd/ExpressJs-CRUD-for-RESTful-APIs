@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monash App</title>
+  <style>
+    body { font-family: Arial; max-width: 750px; margin: 40px auto; padding: 0 20px; background: #f5f5f5; }
+    h1 { text-align: center; color: #003366; }
+    h2 { color: #003366; }
+    label { display: block; font-weight: bold; margin-top: 10px; margin-bottom: 3px; font-size: 14px; }
+    input, select { padding: 9px 12px; width: 100%; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+    .tabs { display: flex; gap: 10px; }
+    .tab-btn { padding: 10px 28px; border: none; border-radius: 6px 6px 0 0; cursor: pointer; font-size: 15px; background: #ccc; }
+    .tab-btn.active { background: #003366; color: white; }
+    .tab { display: none; background: white; border-radius: 0 8px 8px 8px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+    .tab.active { display: block; }
+    .btn-add { background: #003366; color: white; width: 100%; padding: 10px; margin-top: 14px; border: none; border-radius: 5px; font-size: 15px; cursor: pointer; }
+    .btn-edit { background: #e67e00; color: white; padding: 5px 12px; border: none; border-radius: 4px; cursor: pointer; }
+    .btn-delete { background: #cc0000; color: white; padding: 5px 12px; border: none; border-radius: 4px; cursor: pointer; }
+    .btn-save { background: #007700; color: white; padding: 6px 14px; border: none; border-radius: 4px; cursor: pointer; }
+    .btn-cancel { background: #888; color: white; padding: 6px 14px; border: none; border-radius: 4px; cursor: pointer; }
+    .btn-refresh { background: #555; color: white; padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 12px; }
+    .pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 15px; padding: 12px; background: #f0f0f0; border-radius: 5px; }
+    .pagination-info { font-size: 14px; color: #555; }
+    .pagination-controls { display: flex; gap: 8px; }
+    .btn-pagination { background: #003366; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .btn-pagination:disabled { background: #ccc; cursor: not-allowed; }
+    .pagination-limit { display: flex; align-items: center; gap: 8px; }
+    .pagination-limit select { width: auto; padding: 4px 8px; }
+    .card { border: 1px solid #ddd; border-radius: 6px; padding: 14px; margin-top: 10px; background: #fafafa; }
+    .card-name { font-weight: bold; font-size: 15px; color: #003366; }
+    .card-info { font-size: 13px; color: #555; margin: 3px 0; }
+    .card-btns { margin-top: 10px; display: flex; gap: 8px; }
+    .badge { background: #003366; color: white; font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+    .edit-box { margin-top: 12px; background: #eef3ff; border: 1px solid #b0c4ee; border-radius: 5px; padding: 12px; }
+    .edit-box input, .edit-box select { margin-bottom: 8px; }
+    .edit-btns { display: flex; gap: 8px; margin-top: 6px; }
+    .edit-err { color: red; font-size: 13px; margin-bottom: 8px; }
+    .msg { padding: 10px 14px; border-radius: 5px; margin-bottom: 14px; font-size: 14px; display: none; }
+    .msg.ok { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: block; }
+    .msg.err { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; display: block; }
+  </style>
+</head>
+<body>
+<h1>🎓 Monash College App</h1>
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('students')">Students</button>
+  <button class="tab-btn" onclick="showTab('courses')">Courses</button>
+</div>
+<div id="tab-students" class="tab active">
+  <div id="student-msg" class="msg"></div>
+  <h2>Add Student</h2>
+  <label>Student Name</label><input id="s-name" placeholder="e.g. Ahmad Bin Abdullah">
+  <label>Student Number</label><input id="s-number" placeholder="e.g. SE23001">
+  <label>Email</label><input id="s-email" placeholder="e.g. ahmad@monash.edu">
+  <label>MyKad Number</label><input id="s-mykad" placeholder="e.g. 020304165432">
+  <label>Address (optional)</label><input id="s-address" placeholder="e.g. Selangor">
+  <label>Gender (optional)</label>
+  <select id="s-gender">
+    <option value="">-- Select --</option>
+    <option value="Male">Male</option>
+    <option value="Female">Female</option>
+  </select>
+  <button class="btn-add" onclick="addStudent()">Add Student</button>
+  <hr>
+  <h2>Student List</h2>
+  <button class="btn-refresh" onclick="loadStudents()">Refresh</button>
+  <div id="student-list">Loading...</div>
+  <div id="student-pagination" class="pagination" style="display:none;"></div>
+</div>
+<div id="tab-courses" class="tab">
+  <div id="course-msg" class="msg"></div>
+  <h2>Add Course</h2>
+  <label>Course Code (2–4 letters)</label><input id="c-code" placeholder="e.g. SE, LAW">
+  <label>Course Name</label><input id="c-name" placeholder="e.g. Bachelor of Software Engineering">
+  <button class="btn-add" onclick="addCourse()">Add Course</button>
+  <hr>
+  <h2>Course List</h2>
+  <button class="btn-refresh" onclick="loadCourses()">Refresh</button>
+  <div id="course-list">Loading...</div>
+  <div id="course-pagination" class="pagination" style="display:none;"></div>
+</div>
+<script>
+const API = "http://localhost:4000/api"
+let studentPage = 1, studentLimit = 8, coursePage = 1, courseLimit = 4
+
+function showTab(tab) {
+  document.querySelectorAll(".tab, .tab-btn").forEach(el => el.classList.remove("active"))
+  document.getElementById("tab-" + tab).classList.add("active")
+  event.target.classList.add("active")
+  tab === "students" ? loadStudents() : loadCourses()
+}
+
+function showMsg(id, text, isOk) {
+  const el = document.getElementById(id)
+  el.textContent = text
+  el.className = "msg " + (isOk ? "ok" : "err")
+  setTimeout(() => el.className = "msg", 5000)
+}
+
+async function loadStudents(page = studentPage, limit = studentLimit) {
+  studentPage = page
+  studentLimit = limit
+  const listDiv = document.getElementById("student-list")
+  listDiv.innerHTML = "Loading..."
+  const response = await fetch(`${API}/students?page=${page}&limit=${limit}`)
+  const result = await response.json()
+  if (!response.ok) { listDiv.innerHTML = `<p style="color:red">${result.message}</p>`; return }
+  if (result.data.length === 0) {
+    listDiv.innerHTML = "<p>No students yet.</p>"
+    document.getElementById("student-pagination").style.display = "none"
+    return
+  }
+  listDiv.innerHTML = result.data.map(s => `
+    <div class="card">
+      <div class="card-name">${s.studentName}</div>
+      <div class="card-info">📧 ${s.email}</div>
+      <div class="card-info">🪪 ${s.mykadNumber}</div>
+      <div class="card-info">🎓 ${s.studentNumber} <span class="badge">${s.courseCode || ''}</span></div>
+      <div class="card-info">📍 ${s.address || '—'} | ${s.gender || '—'}</div>
+      <div class="card-btns">
+        <button class="btn-edit" onclick="toggleEdit('edit-s-${s.studentId}')">Edit</button>
+        <button class="btn-delete" onclick="deleteStudent(${s.studentId})">Delete</button>
+      </div>
+      <div class="edit-box" id="edit-s-${s.studentId}" style="display:none">
+        <div class="edit-err" id="es-err-${s.studentId}"></div>
+        <label>Student Number</label><input id="es-num-${s.studentId}" value="${s.studentNumber}">
+        <label>Student Name</label><input id="es-name-${s.studentId}" value="${s.studentName}">
+        <label>MyKad</label><input id="es-ic-${s.studentId}" value="${s.mykadNumber}">
+        <label>Address</label><input id="es-addr-${s.studentId}" value="${s.address || ''}">
+        <label>Gender</label>
+        <select id="es-gender-${s.studentId}">
+          <option value="">-- Select --</option>
+          <option value="Male" ${s.gender === 'Male' ? 'selected' : ''}>Male</option>
+          <option value="Female" ${s.gender === 'Female' ? 'selected' : ''}>Female</option>
+        </select>
+        <div class="edit-btns">
+          <button class="btn-save" onclick="updateStudent(${s.studentId})">Save</button>
+          <button class="btn-cancel" onclick="toggleEdit('edit-s-${s.studentId}')">Cancel</button>
+        </div>
+      </div>
+    </div>`).join('')
+  renderPagination("student-pagination", result.pagination, loadStudents)
+}
+
+// POST — send new student data, API validates everything
+async function addStudent() {
+  const response = await fetch(API + "/students", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      studentName: document.getElementById("s-name").value,
+      studentNumber: document.getElementById("s-number").value,
+      email: document.getElementById("s-email").value,
+      mykadNumber: document.getElementById("s-mykad").value,
+      address: document.getElementById("s-address").value || null,
+      gender: document.getElementById("s-gender").value || null
+    })
+  })
+  const result = await response.json()
+  showMsg("student-msg", (response.ok ? "✅ " : "❌ ") + result.message, response.ok)
+  if (response.ok) {
+    ["s-name","s-number","s-email","s-mykad","s-address","s-gender"].forEach(id => document.getElementById(id).value = "")
+    loadStudents()
+  }
+}
+
+async function updateStudent(id) {
+  const response = await fetch(API + "/students/" + id, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      studentNumber: document.getElementById("es-num-" + id).value,
+      studentName: document.getElementById("es-name-" + id).value,
+      mykadNumber: document.getElementById("es-ic-" + id).value,
+      address: document.getElementById("es-addr-" + id).value || null,
+      gender: document.getElementById("es-gender-" + id).value || null
+    })
+  })
+  const result = await response.json()
+  if (response.ok) { showMsg("student-msg", "✅ " + result.message, true); loadStudents() }
+  else { document.getElementById("es-err-" + id).textContent = "❌ " + result.message }
+}
+
+async function deleteStudent(id) {
+  if (!confirm("Delete this student?")) return
+  const response = await fetch(API + "/students/" + id, { method: "DELETE" })
+  const result = await response.json()
+  showMsg("student-msg", (response.ok ? "✅ " : "❌ ") + result.message, response.ok)
+  if (response.ok) loadStudents()
+}
+
+async function loadCourses(page = coursePage, limit = courseLimit) {
+  coursePage = page
+  courseLimit = limit
+  const listDiv = document.getElementById("course-list")
+  listDiv.innerHTML = "Loading..."
+  const response = await fetch(`${API}/courses?page=${page}&limit=${limit}`)
+  const result = await response.json()
+  if (!response.ok) { listDiv.innerHTML = `<p style="color:red">${result.message}</p>`; return }
+  if (result.data.length === 0) {
+    listDiv.innerHTML = "<p>No courses yet.</p>"
+    document.getElementById("course-pagination").style.display = "none"
+    return
+  }
+  listDiv.innerHTML = result.data.map(c => `
+    <div class="card">
+      <div class="card-name"><span class="badge">${c.courseCode}</span> &nbsp;${c.courseName}</div>
+      <div class="card-btns">
+        <button class="btn-edit" onclick="toggleEdit('edit-c-${c.courseId}')">Edit</button>
+        <button class="btn-delete" onclick="deleteCourse(${c.courseId})">Delete</button>
+      </div>
+      <div class="edit-box" id="edit-c-${c.courseId}" style="display:none">
+        <label>Course Code</label><input id="ec-code-${c.courseId}" value="${c.courseCode}">
+        <label>Course Name</label><input id="ec-name-${c.courseId}" value="${c.courseName}">
+        <div class="edit-btns">
+          <button class="btn-save" onclick="updateCourse(${c.courseId})">Save</button>
+          <button class="btn-cancel" onclick="toggleEdit('edit-c-${c.courseId}')">Cancel</button>
+        </div>
+      </div>
+    </div>`).join('')
+  renderPagination("course-pagination", result.pagination, loadCourses)
+}
+
+async function addCourse() {
+  const response = await fetch(API + "/courses", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      courseCode: document.getElementById("c-code").value,
+      courseName: document.getElementById("c-name").value
+    })
+  })
+  const result = await response.json()
+  showMsg("course-msg", (response.ok ? "✅ " : "❌ ") + result.message, response.ok)
+  if (response.ok) {
+    document.getElementById("c-code").value = ""
+    document.getElementById("c-name").value = ""
+    loadCourses()
+  }
+}
+
+// PUT — send updated course data, API validates everything
+async function updateCourse(id) {
+  const response = await fetch(API + "/courses", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      courseId: id,
+      courseCode: document.getElementById("ec-code-" + id).value,
+      courseName: document.getElementById("ec-name-" + id).value
+    })
+  })
+  const result = await response.json()
+  showMsg("course-msg", (response.ok ? "✅ " : "❌ ") + result.message, response.ok)
+  if (response.ok) loadCourses()
+}
+
+// DELETE — remove course by ID (will fail if students are enrolled)
+async function deleteCourse(id) {
+  if (!confirm("Delete this course? Will fail if students are enrolled.")) return
+  const response = await fetch(API + "/courses/" + id, { method: "DELETE" })
+  const result = await response.json()
+  showMsg("course-msg", (response.ok ? "✅ " : "❌ ") + result.message, response.ok)
+  if (response.ok) loadCourses()
+}
+
+function renderPagination(containerId, pagination, loadFunction) {
+  const container = document.getElementById(containerId)
+  if (!pagination || pagination.totalPages <= 1) {
+    container.style.display = "none"
+    return
+  }
+  container.style.display = "flex"
+  const start = ((pagination.page - 1) * pagination.limit) + 1
+  const end = Math.min(pagination.page * pagination.limit, pagination.total)
+  container.innerHTML = `
+    <div class="pagination-info">Showing ${start} - ${end} of ${pagination.total} (Page ${pagination.page} of ${pagination.totalPages})</div>
+    <div class="pagination-controls">
+      <button class="btn-pagination" ${!pagination.hasPrev ? 'disabled' : ''} onclick="loadFunction(${pagination.page - 1}, ${pagination.limit})">← Prev</button>
+      <button class="btn-pagination" ${!pagination.hasNext ? 'disabled' : ''} onclick="loadFunction(${pagination.page + 1}, ${pagination.limit})">Next →</button>
+      <div class="pagination-limit">
+        <label>Per page:</label>
+        <select onchange="loadFunction(1, parseInt(this.value))">
+          <option value="4" ${pagination.limit === 5 ? 'selected' : ''}>4</option>
+          <option value="8" ${pagination.limit === 8 ? 'selected' : ''}>8</option>
+          <option value="10" ${pagination.limit === 10 ? 'selected' : ''}>10</option>
+          <option value="20" ${pagination.limit === 20 ? 'selected' : ''}>20</option>
+        </select>
+      </div>
+    </div>`
+  container.querySelectorAll('.btn-pagination').forEach(btn => {
+    if (btn.textContent.includes('Prev')) btn.onclick = () => loadFunction(pagination.page - 1, pagination.limit)
+    else if (btn.textContent.includes('Next')) btn.onclick = () => loadFunction(pagination.page + 1, pagination.limit)
+  })
+  container.querySelector('select').onchange = (e) => loadFunction(1, parseInt(e.target.value))
+}
+
+function toggleEdit(boxId) {
+  const box = document.getElementById(boxId)
+  box.style.display = box.style.display === "none" ? "block" : "none"
+}
+
+loadStudents()
+</script>
+</body>
+</html>
