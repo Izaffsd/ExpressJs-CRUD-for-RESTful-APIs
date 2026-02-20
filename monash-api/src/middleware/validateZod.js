@@ -5,7 +5,7 @@ export const validateZod = (schema, source = 'body') => {
 
   return (request, res, next) => {
     const data = request[source] // source = { validatedData }
-    const result = schema.safeParse(data) // result = { success and data or error }
+    const result = schema.safeParse(data) // zod check status result = { success and data or fail and list error }
 
     if (!result.success) {
       const firstIssue = result.error.issues[0] // issues = ZodError custom format

@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 // JSON almost always sends strings.
 
-// client sent id as string, so we need to convert it to number
+// client sent id as string, so need to convert it to number
 const courseIdParam = z.string()
   .regex(/^\d+$/, 'ID must be a number')
   .transform(Number)

@@ -1,22 +1,29 @@
 import express from 'express'
-import 'dotenv/config'
 import morgan from 'morgan'
 import cors from 'cors'
 import routes from './src/routes/index.js'
 import { errorHandler } from './src/middleware/errorHandler.js'
+import path from "path"
+import { fileURLToPath } from "url"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const app = express()
 
+// serve frontend
+app.use(express.static(path.join(__dirname, "../public")))
+
 // Middleware
 if (process.env.NODE_ENV === 'production') {
-    app.use(morgan('combined'))
+    app.use(morgan('combined')) // full log
 } else {
     app.use(morgan('dev'))
 }
 
 // CORS Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://devlopmentserver.com'],
+  origin: ['http://localhost:3000', 'https://devlopmentserver.com', ],
   credentials: true
 }))
 

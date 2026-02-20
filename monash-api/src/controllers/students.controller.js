@@ -44,7 +44,6 @@ export const getStudentById = async (req, res, next) => {
             return response(res, 404, 'Student does not exist', null, 'STUDENT_NOT_FOUND_404')
         }
 
-        // response() utility automatically transforms to camelCase
         return response(res, 200, 'Student retrieved successfully', result[0] || null)
     } catch (error) {
         next(error)
@@ -53,8 +52,7 @@ export const getStudentById = async (req, res, next) => {
 
 export const createStudent = async (req, res, next) => {
     try {
-        // req.body is already transformed to snake_case by middleware
-        // and validated by Zod
+        // req.body is already transformed to snake_case by middleware and validated by Zod
         const {
             student_number,
             mykad_number,
@@ -79,7 +77,6 @@ export const createStudent = async (req, res, next) => {
 
         const course_id = courseResult[0].course_id  // [ { course_id: 4 } ]
 
-        // Insert student
         const insertQuery = `
             INSERT INTO student 
             (student_number, mykad_number, email, student_name, address, gender, course_id) 
@@ -102,7 +99,6 @@ export const createStudent = async (req, res, next) => {
             return response(res, 400, 'Student not created', null, 'STUDENT_NOT_CREATED_400')
         }
 
-        // response() utility automatically transforms to camelCase
         return response(res, 201, 'Student created successfully', {
             student_id: result.insertId,
             student_number: student_number,
@@ -117,8 +113,6 @@ export const createStudent = async (req, res, next) => {
 
 export const updateStudent = async (req, res, next) => {
     try {
-        // req.body is already transformed to snake_case by middleware
-        // and validated by Zod
         const {
             student_id,
             mykad_number,
@@ -143,7 +137,6 @@ export const updateStudent = async (req, res, next) => {
         
         const course_id = courseExists[0].course_id
 
-        // Update student
         const updateQuery = `
             UPDATE student 
             SET mykad_number = ?, student_name = ?, address = ?, gender = ?, student_number = ?, course_id = ? 
@@ -179,8 +172,7 @@ export const updateStudent = async (req, res, next) => {
 
 export const deleteStudent = async (req, res, next) => {
     try {
-        // req.params is already transformed to snake_case by middleware
-        // and validated by Zod
+        // req.params is already transformed to snake_case by middleware and validated by Zod
         const student_id = req.params.student_id
 
         const [result] = await db.execute(

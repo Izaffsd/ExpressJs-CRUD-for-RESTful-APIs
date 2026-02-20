@@ -1,10 +1,231 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Monash API</title>
+  <title>Monash Mini Frontend</title>
+  <style>
+    body { font-family: Arial; max-width: 800px; margin: 40px auto; padding: 0 16px; }
+    input, select, button { padding: 8px; margin: 4px 0; width: 100%; box-sizing: border-box; }
+    button { cursor: pointer; }
+    .card { border: 1px solid #ddd; padding: 10px; margin-top: 8px; border-radius: 4px; }
+    .error { color: red; font-size: 13px; }
+    .success { color: green; font-size: 13px; }
+    hr { margin: 24px 0; }
+  </style>
 </head>
 <body>
-  <h1>Welcome to the Monash API</h1>
+<h1>🎓 Monash Mini Frontend</h1>
+
+<h2>Create Student</h2>
+<input id="studentNumber" placeholder="Student Number (e.g. SE23001)">
+<input id="studentName" placeholder="Full Name">
+<input id="email" placeholder="Email">
+<input id="mykadNumber" placeholder="MyKad (12 digits)" maxlength="12">
+<input id="address" placeholder="Address (optional)">
+<select id="gender">
+  <option value="">— Gender (optional) —</option>
+  <option value="Male">Male</option>
+  <option value="Female">Female</option>
+</select>
+<p style="font-size:12px;color:#888;">Course auto-assigned from student number prefix (e.g. SE → Software Engineering)</p>
+<button onclick="createStudent()">Create Student</button>
+<div id="createMsg"></div>
+
+<hr>
+<h2>Update Student</h2>
+<input id="updateStudentId" placeholder="Student ID">
+<input id="updateStudentName" placeholder="Full Name">
+<input id="updateMykad" placeholder="MyKad (12 digits)" maxlength="12">
+<input id="updateAddress" placeholder="Address (optional)">
+<select id="updateGender">
+  <option value="">— Gender (optional) —</option>
+  <option value="Male">Male</option>
+  <option value="Female">Female</option>
+</select>
+<select id="updateCourseId"></select>
+<button onclick="updateStudent()">Update Student</button>
+<div id="updateMsg"></div>
+
+<hr>
+<h2>Courses</h2>
+<input id="courseCode" placeholder="Course Code (e.g. SE, LAW)" maxlength="4">
+<input id="courseName" placeholder="Course Name">
+<button onclick="createCourse()">Create Course</button>
+<div id="courseMsg"></div>
+<button onclick="loadCourses()" style="margin-top:10px">Refresh Courses</button>
+<div id="courses"></div>
+
+<hr>
+<h2>Students</h2>
+<button onclick="loadStudents()">Refresh Students</button>
+<div id="students"></div>
+
+<script>
+const API = 'http://localhost:4000/api'
+
+// ============================================
+// API HELPER
+// ============================================
+async function request(method, path, body = null) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } }
+  if (body) opts.body = JSON.stringify(body)
+  const res = await fetch(API + path, opts)
+  const data = await res.json()
+  return { ok: res.ok, data }
+}
+
+function showMsg(id, msg, isError = false) {
+  const el = document.getElementById(id)
+  el.className = isError ? 'error' : 'success'
+  el.textContent = msg
+  setTimeout(() => el.textContent = '', 3000)
+}
+
+// ============================================
+// STUDENTS — GET ALL
+// ============================================
+async function loadStudents() {
+  const { ok, data } = await request('GET', '/students')
+  const container = document.getElementById('students')
+
+  if (!ok) { container.innerHTML = `<p class="error">${data.message}</p>`; return }
+
+  const students = data.data || []
+  if (!students.length) { container.innerHTML = '<p>No students found.</p>'; return }
+
+  container.innerHTML = students.map(s => `
+    <div class="card">
+      <b>${s.studentName}</b> — <code>${s.studentNumber}</code><br>
+      ${s.email} | ${s.courseCode || '—'} | ${s.gender || '—'}
+      <br>
+      <button onclick="fillUpdateForm(${JSON.stringify(s).replace(/"/g, '&quot;')})">Edit</button>
+      <button onclick="deleteStudent(${s.studentId}, '${s.studentName}')">Delete</button>
+    </div>`).join('')
+}
+
+// ============================================
+// STUDENTS — CREATE
+// ============================================
+async function createStudent() {
+  const body = {
+    studentNumber: document.getElementById('studentNumber').value.trim(),
+    studentName:   document.getElementById('studentName').value.trim(),
+    email:         document.getElementById('email').value.trim(),
+    mykadNumber:   document.getElementById('mykadNumber').value.trim(),
+    address:       document.getElementById('address').value.trim() || null,
+    gender:        document.getElementById('gender').value || null
+  }
+
+  if (!body.studentNumber || !body.studentName || !body.email || !body.mykadNumber) {
+    return showMsg('createMsg', 'All required fields must be filled.', true)
+  }
+
+  const { ok, data } = await request('POST', '/students', body)
+  showMsg('createMsg', data.message, !ok)
+  if (ok) { loadStudents(); clearForm(['studentNumber','studentName','email','mykadNumber','address']); document.getElementById('gender').value = '' }
+}
+
+// ============================================
+// STUDENTS — UPDATE
+// ============================================
+async function updateStudent() {
+  const body = {
+    studentId:   Number(document.getElementById('updateStudentId').value),
+    studentName: document.getElementById('updateStudentName').value.trim(),
+    mykadNumber: document.getElementById('updateMykad').value.trim(),
+    address:     document.getElementById('updateAddress').value.trim() || null,
+    gender:      document.getElementById('updateGender').value || null,
+    courseId:    Number(document.getElementById('updateCourseId').value)
+  }
+
+  if (!body.studentId || !body.studentName || !body.mykadNumber || !body.courseId) {
+    return showMsg('updateMsg', 'Student ID, name, mykad & course are required.', true)
+  }
+
+  const { ok, data } = await request('PUT', '/students', body)
+  showMsg('updateMsg', data.message, !ok)
+  if (ok) loadStudents()
+}
+
+function fillUpdateForm(s) {
+  document.getElementById('updateStudentId').value = s.studentId
+  document.getElementById('updateStudentName').value = s.studentName
+  document.getElementById('updateMykad').value = s.mykadNumber
+  document.getElementById('updateAddress').value = s.address || ''
+  document.getElementById('updateGender').value = s.gender || ''
+  document.getElementById('updateCourseId').value = s.courseId
+  window.scrollTo({ top: 200, behavior: 'smooth' })
+}
+
+// ============================================
+// STUDENTS — DELETE
+// ============================================
+async function deleteStudent(id, name) {
+  if (!confirm(`Delete "${name}"?`)) return
+  const { ok, data } = await request('DELETE', `/students/${id}`)
+  showMsg('createMsg', data.message, !ok)
+  if (ok) loadStudents()
+}
+
+// ============================================
+// COURSES — GET ALL
+// ============================================
+async function loadCourses() {
+  const { ok, data } = await request('GET', '/courses')
+  const container = document.getElementById('courses')
+
+  if (!ok) { container.innerHTML = `<p class="error">${data.message}</p>`; return }
+
+  const courses = data.data || []
+
+  // Populate update student dropdown
+  const sel = document.getElementById('updateCourseId')
+  sel.innerHTML = courses.map(c => `<option value="${c.courseId}">${c.courseCode} — ${c.courseName}</option>`).join('')
+
+  if (!courses.length) { container.innerHTML = '<p>No courses found.</p>'; return }
+
+  container.innerHTML = courses.map(c => `
+    <div class="card">
+      <b>${c.courseCode}</b> — ${c.courseName}
+      <button onclick="deleteCourse(${c.courseId}, '${c.courseCode}')">Delete</button>
+    </div>`).join('')
+}
+
+// ============================================
+// COURSES — CREATE
+// ============================================
+async function createCourse() {
+  const body = {
+    courseCode: document.getElementById('courseCode').value.trim(),
+    courseName: document.getElementById('courseName').value.trim()
+  }
+
+  if (!body.courseCode || !body.courseName) {
+    return showMsg('courseMsg', 'Both fields are required.', true)
+  }
+
+  const { ok, data } = await request('POST', '/courses', body)
+  showMsg('courseMsg', data.message, !ok)
+  if (ok) { loadCourses(); clearForm(['courseCode', 'courseName']) }
+}
+
+// ============================================
+// COURSES — DELETE
+// ============================================
+async function deleteCourse(id, code) {
+  if (!confirm(`Delete course "${code}"? Will fail if students enrolled.`)) return
+  const { ok, data } = await request('DELETE', `/courses/${id}`)
+  showMsg('courseMsg', data.message, !ok)
+  if (ok) loadCourses()
+}
+
+// ============================================
+// UTILS
+// ============================================
+function clearForm(ids) { ids.forEach(id => document.getElementById(id).value = '') }
+
+// Init
+loadCourses()
+loadStudents()
+</script>
 </body>
 </html>
