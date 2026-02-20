@@ -1,12 +1,12 @@
 import db from '../config/connection.js'
 import { response } from '../utils/response.js'
+import { paginate } from '../utils/pagination.js'
 
 export const getAllCourses = async (req, res, next) => {
     try {
-        const [courses] = await db.execute('SELECT * FROM courses')
+        const { data, pagination } = await paginate(db, 'SELECT * FROM courses', req.query)
 
-        // response() utility automatically transforms to camelCase
-        return response(res, 200, 'Courses Retrieved successfully', courses)
+        return response(res, 200, 'Courses Retrieved successfully', data, null, [], pagination)
     } catch (error) {
         next(error)
     }

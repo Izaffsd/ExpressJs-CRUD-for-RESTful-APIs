@@ -1,22 +1,18 @@
 import db from '../config/connection.js'
 import { response } from '../utils/response.js'
 import { extractStudentNumberPrefix } from '../validations/studentValidation.js'
+import { paginate } from '../utils/pagination.js'
 
 export const getAllStudents = async (req, res, next) => {
     try {
-        const query = `
-            SELECT
-                s.*,
-                c.course_id,
-                c.course_code,
-                c.course_name
+        const baseQuery = `
+            SELECT s.*, c.course_code, c.course_name
             FROM student s
             LEFT JOIN courses c USING (course_id)
         `
-        const [students] = await db.execute(query)
-        
-        // response() utility automatically transforms to camelCase
-        return response(res, 200, 'Students Retrieved successfully', students)
+        const { data, pagination } = await paginate(db, baseQuery, req.query)
+
+        return response(res, 200, 'Students Retrieved successfully', data, null, [], pagination)
     } catch (error) {
         next(error)
     }
@@ -113,8 +109,9 @@ export const createStudent = async (req, res, next) => {
 
 export const updateStudent = async (req, res, next) => {
     try {
+        const student_id = req.params.student_id
+        
         const {
-            student_id,
             mykad_number,
             student_name,
             address,

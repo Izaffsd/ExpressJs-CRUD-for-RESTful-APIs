@@ -19,6 +19,7 @@ const studentNumber = z.string()
   })
 
 const myKadNumber = z.string()
+  .min(1, 'MyKad number is required')
   .length(12, 'MyKad number must be exactly 12 digits')
   .regex(/^\d{12}$/, 'MyKad number must contain only digits')
   .refine((val) => {
@@ -32,6 +33,7 @@ const myKadNumber = z.string()
   })
 
 const email = z.string()
+  .min(1, 'Email is required')
   .trim()
   .toLowerCase()
   .refine((val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
@@ -55,16 +57,15 @@ export const getStudentByIdSchema = z.object({
 
 
 export const createStudentSchema = z.object({
-  student_number: studentNumber,
-  mykad_number: myKadNumber,
-  email: email,
   student_name: studentName,
+  student_number: studentNumber,
+  email: email,
+  mykad_number: myKadNumber,
   address: z.string().max(255, 'Address must not exceed 255 characters').trim().optional().nullable(),
   gender: z.enum(['Male', 'Female']).optional().nullable()
 })
 
 export const updateStudentSchema = z.object({
-  student_id: studentId,
   student_number: studentNumber,
   mykad_number: myKadNumber,
   student_name: studentName,

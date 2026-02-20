@@ -24,7 +24,7 @@ router.get('/students/:student_id', validateZod(getStudentByIdSchema, 'params'),
 router.post('/students', validateZod(createStudentSchema, 'body'), createStudent)
 
 // PUT routes
-router.put('/students', validateZod(updateStudentSchema, 'body'), updateStudent)
+router.put('/students/:student_id', validateZod(getStudentByIdSchema, 'params'), validateZod(updateStudentSchema, 'body'), updateStudent)
 
 // DELETE routes
 router.delete('/students/:student_id', validateZod(deleteStudentSchema, 'params'), deleteStudent)

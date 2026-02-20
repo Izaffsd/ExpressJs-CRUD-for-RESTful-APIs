@@ -23,7 +23,7 @@ if (process.env.NODE_ENV === 'production') {
 
 // CORS Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://devlopmentserver.com', ],
+  origin: ['http://localhost:3000', 'https://devlopmentserver.com'], // dev server process.env.CORS_ORIGINS?
   credentials: true
 }))
 

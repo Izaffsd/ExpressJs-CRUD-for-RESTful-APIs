@@ -6,7 +6,8 @@ export const response = (
   message = "",
   data = null,
   errorCode = null,
-  errors = []
+  errors = [],
+  pagination = null
 ) => {
   const success = statusCode < 400
   const resBody = {
@@ -19,6 +20,11 @@ export const response = (
   if (success && data !== null) {
     // Transform data to camelCase before sending
     resBody.data = toCamelCase(data)
+  }
+
+  // Include pagination metadata if provided
+  if (pagination !== null) {
+    resBody.pagination = toCamelCase(pagination)
   }
 
   // Include error details only for failed responses
