@@ -50,10 +50,10 @@ INSERT INTO `courses` (`course_id`, `course_code`, `course_name`, `created_at`, 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `student`
+-- Table structure for table `students`
 --
 
-CREATE TABLE `student` (
+CREATE TABLE `students` (
   `student_id` int NOT NULL,
   `student_number` varchar(10) NOT NULL,
   `mykad_number` char(12) NOT NULL,
@@ -67,10 +67,10 @@ CREATE TABLE `student` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
--- Dumping data for table `student`
+-- Dumping data for table `students`
 --
 
-INSERT INTO `student` (`student_id`, `student_number`, `mykad_number`, `email`, `student_name`, `address`, `gender`, `course_id`, `created_at`, `updated_at`) VALUES
+INSERT INTO `students` (`student_id`, `student_number`, `mykad_number`, `email`, `student_name`, `address`, `gender`, `course_id`, `created_at`, `updated_at`) VALUES
 (1, 'SE0001', '020304101234', 'ahmad.se@monash.edu', 'Ahmad Bin Abdullah', 'Taman Selangor', 'Male', 1, '2025-02-01 09:00:00', '2026-02-20 06:53:47'),
 (2, 'SE0002', '011205205678', 'siti.se@monash.edu', 'Siti Aminah Binti Yusof', 'Daera Kuala Lumpur', 'Female', 1, '2025-02-01 09:10:00', '2026-02-20 06:53:55'),
 (3, 'SE0003', '030812089012', 'hafiz.se@monash.edu', 'Muhammad Hafiz Bin Aziz', 'Johor Bahru', 'Male', 1, '2025-02-01 09:20:00', '2025-02-01 09:20:00'),
@@ -101,9 +101,9 @@ ALTER TABLE `courses`
   ADD UNIQUE KEY `course_code_no` (`course_code`);
 
 --
--- Indexes for table `student`
+-- Indexes for table `students`
 --
-ALTER TABLE `student`
+ALTER TABLE `students`
   ADD PRIMARY KEY (`student_id`),
   ADD UNIQUE KEY `no_kp` (`mykad_number`),
   ADD UNIQUE KEY `email` (`email`),
@@ -123,7 +123,7 @@ ALTER TABLE `courses`
 --
 -- AUTO_INCREMENT for table `student`
 --
-ALTER TABLE `student`
+ALTER TABLE `students`
   MODIFY `student_id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
@@ -131,9 +131,9 @@ ALTER TABLE `student`
 --
 
 --
--- Constraints for table `student`
+-- Constraints for table `students`
 --
-ALTER TABLE `student`
+ALTER TABLE `students`
   ADD CONSTRAINT `fk_student_course` FOREIGN KEY (`course_id`) REFERENCES `courses` (`course_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 COMMIT;
 

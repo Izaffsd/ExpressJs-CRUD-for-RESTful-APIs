@@ -118,6 +118,21 @@ Open your browser and visit:
 - **Frontend Demo**: `http://localhost:4000` (serves `public/index.html`)
 
 ---
+## 🗄 Architecture Flow
+
+🔄 Request Lifecycle
+
+Client → Route → Transform → Validation → Controller → Service → Database → Response → Client
+
+Route          →  define endpoints & attach middleware
+Transform      →  camelCase → snake_case
+Validation     →  Zod validates incoming request data
+Controller     →  receives req, calls service, returns response
+Service        →  business logic, DB queries, throws AppError
+Database       →  executes query
+Response       →  formats & converts snake_case → camelCase
+Error Handler  →  catches AppError, returns error response
+---
 
 ## 🗄 Database Setup
 
@@ -147,7 +162,7 @@ Run the SQL commands from `src/db/monash.sql` in your MySQL client.
 - `course_name` (VARCHAR(100))
 - `created_at`, `updated_at` (TIMESTAMP)
 
-**student** table:
+**students** table:
 - `student_id` (PK, AUTO_INCREMENT)
 - `student_number` (UNIQUE, VARCHAR(10)) - e.g., "SE23001"
 - `mykad_number` (UNIQUE, CHAR(12)) - Malaysian IC number
@@ -825,7 +840,7 @@ The API automatically converts between naming conventions:
 - **Database stores**: `snake_case`
 - **API responds**: Transformed back to `camelCase`
 
-This is handled by middleware in `src/middleware/transformRequest.middleware.js`
+This is handled by middleware in `src/middleware/transformRequest.js`
 
 ### 2. Validation with Zod
 
@@ -869,7 +884,7 @@ monash-api/
 │   │   └── monash.sql         # Database schema & seed data
 │   ├── middleware/
 │   │   ├── errorHandler.js    # Global error handler
-│   │   ├── transformRequest.middleware.js  # camelCase ↔ snake_case
+│   │   ├── transformRequest.js  # camelCase ↔ snake_case
 │   │   └── validateZod.js    # Zod validation middleware
 │   ├── routes/
 │   │   ├── index.js           # Route aggregator
