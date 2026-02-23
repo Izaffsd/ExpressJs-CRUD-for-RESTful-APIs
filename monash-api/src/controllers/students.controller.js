@@ -3,6 +3,18 @@ import { response } from '../utils/response.js'
 import { extractStudentNumberPrefix } from '../validations/studentValidation.js'
 import { paginate } from '../utils/pagination.js'
 
+// return full student data
+const FIND_STUDENT_BY_ID = `
+    SELECT
+        s.student_id, s.student_number, s.mykad_number,
+        s.email, s.student_name, s.address, s.gender,
+        s.course_id, c.course_code, c.course_name,
+        s.created_at, s.updated_at
+    FROM student s
+    JOIN courses c ON s.course_id = c.course_id
+    WHERE s.student_id = ?
+`
+
 export const getAllStudents = async (req, res, next) => {
     try {
         const baseQuery = `
@@ -22,19 +34,8 @@ export const getStudentById = async (req, res, next) => {
     try {
         // req.params is already transformed to snake_case by middleware
         const student_id = req.params.student_id
-        
-        const query = `
-            SELECT
-                s.*,
-                c.course_id,
-                c.course_code,
-                c.course_name
-            FROM student s
-            LEFT JOIN courses c USING (course_id)
-            WHERE s.student_id = ?
-        `
 
-        const [result] = await db.execute(query, [student_id])
+        const [result] = await db.execute(FIND_STUDENT_BY_ID, [student_id])
 
         if (result.length === 0) {
             return response(res, 404, 'Student does not exist', null, 'STUDENT_NOT_FOUND_404')
@@ -95,12 +96,9 @@ export const createStudent = async (req, res, next) => {
             return response(res, 400, 'Student not created', null, 'STUDENT_NOT_CREATED_400')
         }
 
-        return response(res, 201, 'Student created successfully', {
-            student_id: result.insertId,
-            student_number: student_number,
-            course_id: course_id,
-            course_code: prefix
-        })
+        const [studentData] = await db.execute(FIND_STUDENT_BY_ID, [result.insertId])
+
+        return response(res, 201, 'Student created successfully', studentData[0] || null)
 
     } catch (error) {
         next(error)
@@ -156,11 +154,9 @@ export const updateStudent = async (req, res, next) => {
             return response(res, 404, 'Student does not exist', null, 'STUDENT_NOT_FOUND_404')
         }
 
+        const [studentData] = await db.execute(FIND_STUDENT_BY_ID, [student_id])
         // response() utility automatically transforms to camelCase
-        return response(res, 200, 'Student updated successfully', {
-            updated: result.affectedRows > 0,
-            student_id: student_id
-        })
+        return response(res, 200, 'Student updated successfully', studentData[0] || null)
 
     } catch (error) {
         next(error)

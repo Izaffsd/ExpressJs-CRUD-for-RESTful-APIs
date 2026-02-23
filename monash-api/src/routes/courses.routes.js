@@ -8,6 +8,7 @@ import {
 } from '../controllers/courses.controller.js'
 import { validateZod } from '../middleware/validateZod.js'
 import {
+    getCourseByIdSchema,
     getCourseByCodeSchema,
     createCourseSchema,
     updateCourseSchema,
@@ -24,7 +25,7 @@ router.get('/courses/:course_code', validateZod(getCourseByCodeSchema, 'params')
 router.post('/courses', validateZod(createCourseSchema, 'body'), createCourse)
 
 // PUT routes
-router.put('/courses', validateZod(updateCourseSchema, 'body'), updateCourse)
+router.put('/courses/:course_id', validateZod(getCourseByIdSchema, 'params'), validateZod(updateCourseSchema, 'body'), updateCourse)
 
 // DELETE routes
 router.delete('/courses/:course_id', validateZod(deleteCourseSchema, 'params'), deleteCourse)

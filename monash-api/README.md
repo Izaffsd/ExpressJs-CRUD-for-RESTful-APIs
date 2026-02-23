@@ -356,15 +356,23 @@ fetch('http://localhost:4000/api/students', {
 **Example Response:**
 ```json
 {
-  "statusCode": 201,
-  "success": true,
-  "message": "Student created successfully",
-  "data": {
-    "studentId": 18,
-    "studentNumber": "SE23001",
-    "courseId": 1,
-    "courseCode": "SE"
-  }
+    "statusCode": 201,
+    "success": true,
+    "message": "Student created successfully",
+    "data": {
+        "studentId": 86,
+        "studentNumber": "SE1212",
+        "mykadNumber": "010101110847",
+        "email": "test@gmail.com",
+        "studentName": "test",
+        "address": null,
+        "gender": null,
+        "courseId": 2,
+        "courseCode": "SE",
+        "courseName": "Bachelor of Software Engineering",
+        "createdAt": "2026-02-21T08:17:00.000Z",
+        "updatedAt": "2026-02-21T08:17:00.000Z"
+    }
 }
 ```
 
@@ -408,13 +416,23 @@ fetch('http://localhost:4000/api/students/1', {
 **Example Response:**
 ```json
 {
-  "statusCode": 200,
-  "success": true,
-  "message": "Student updated successfully",
-  "data": {
-    "updated": true,
-    "studentId": 1
-  }
+    "statusCode": 200,
+    "success": true,
+    "message": "Student updated successfully",
+    "data": {
+        "studentId": 3,
+        "studentNumber": "AIE0807",
+        "mykadNumber": "990112108765",
+        "email": "daniel.ai@monash.edu",
+        "studentName": "Daniel Lee",
+        "address": "Penang",
+        "gender": "Male",
+        "courseId": 3,
+        "courseCode": "AIE",
+        "courseName": "Bachelor of Software Engineerings",
+        "createdAt": "2025-12-17T09:44:31.000Z",
+        "updatedAt": "2026-02-21T08:18:21.000Z"
+    }
 }
 ```
 
@@ -567,12 +585,14 @@ fetch('http://localhost:4000/api/courses', {
 
 ### 4. Update Course
 
-**PUT** `/courses`
+**PUT** `/courses/:course_id`
+
+**URL Parameters:**
+- `course_id` (required): Course ID (number)
 
 **Request Body:**
 ```json
 {
-  "courseId": 1,
   "courseCode": "SE",
   "courseName": "Bachelor of Software Engineering (Updated)"
 }
@@ -580,13 +600,12 @@ fetch('http://localhost:4000/api/courses', {
 
 **Example Request:**
 ```javascript
-fetch('http://localhost:4000/api/courses', {
+fetch('http://localhost:4000/api/courses/1', {
   method: 'PUT',
   headers: {
     'Content-Type': 'application/json'
   },
   body: JSON.stringify({
-    courseId: 1,
     courseCode: "SE",
     courseName: "Bachelor of Software Engineering (Updated)"
   })

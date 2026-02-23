@@ -59,7 +59,9 @@ export const createCourse = async (req, res, next) => {
 export const updateCourse = async (req, res, next) => {
     try {
         // req.body is already transformed to snake_case by middleware and validated by Zod
-        const { course_code, course_name, course_id } = req.body
+        const course_id = req.params.course_id
+
+        const { course_code, course_name } = req.body
         
         const updateQuery = 'UPDATE courses SET course_code = ?, course_name = ? WHERE course_id = ?'
         const values = [course_code, course_name, course_id]

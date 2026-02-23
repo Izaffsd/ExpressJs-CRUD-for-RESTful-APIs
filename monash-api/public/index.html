@@ -243,7 +243,7 @@ async function addCourse() {
 
 // PUT — send updated course data, API validates everything
 async function updateCourse(id) {
-  const response = await fetch(API + "/courses", {
+  const response = await fetch(API + "/courses/" + id, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
