@@ -120,18 +120,56 @@ Open your browser and visit:
 ---
 ## 🗄 Architecture Flow
 
-🔄 Request Lifecycle
+### 🔄 Request Lifecycle
 
-Client → Route → Transform → Validation → Controller → Service → Database → Response → Client
 
-Route          →  define endpoints & attach middleware
-Transform      →  camelCase → snake_case
-Validation     →  Zod validates incoming request data
-Controller     →  receives req, calls service, returns response
-Service        →  business logic, DB queries, throws AppError
-Database       →  executes query
-Response       →  formats & converts snake_case → camelCase
-Error Handler  →  catches AppError, returns error response
+Client
+↓
+Route
+↓
+Transform Middleware
+↓
+Validation Middleware
+↓
+Controller
+↓
+Service
+↓
+Database
+↓
+Response Formatter
+↓
+Client
+
+
+### 🧩 Layer Responsibilities
+
+**Route**  
+Defines API endpoints and attaches required middleware.
+
+**Transform Middleware**  
+Converts incoming request data from `camelCase` → `snake_case`.
+
+**Validation Middleware**  
+Validates request body, params, and query using Zod schema.
+
+**Controller**  
+Handles HTTP request/response.  
+Calls the appropriate service and returns formatted response.
+
+**Service**  
+Contains business logic.  
+Executes database queries and throws `AppError` when needed.
+
+**Database Layer**  
+Executes SQL queries and returns raw results.
+
+**Response Formatter**  
+Transforms response data from `snake_case` → `camelCase`.
+
+**Global Error Handler**  
+Catches `AppError` and unexpected errors.  
+Returns standardized error response.
 ---
 
 ## 🗄 Database Setup
