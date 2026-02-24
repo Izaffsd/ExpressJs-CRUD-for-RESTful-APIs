@@ -6,7 +6,7 @@ import {
     updateCourse,
     deleteCourse
 } from '../controllers/courses.controller.js'
-import { validateZod } from '../middleware/validateZod.js'
+import { validateZod } from '../middleware/validateZod.middleware.js'
 import {
     getCourseByIdSchema,
     getCourseByCodeSchema,

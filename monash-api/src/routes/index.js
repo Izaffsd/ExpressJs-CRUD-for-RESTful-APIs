@@ -2,7 +2,7 @@ import express from 'express'
 import db from '../config/connection.js'
 import studentsRoutes from './students.routes.js'
 import coursesRoutes from './courses.routes.js'
-import { transformRequest } from '../middleware/transformRequest.js'
+import { transformRequest } from '../middleware/transformRequest.middleware.js'
 
 const router = express.Router()
 

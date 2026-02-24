@@ -25,7 +25,7 @@ monash-api/
     │   ├── connection.js              # MySQL connection pool
     │   └── monash.sql                  # Database schema
     ├── middleware/
-    │   ├── errorHandler.js             # Global error handler
+    │   ├── errorHandler.middleware.js             # Global error handler
     │   ├── transformRequest.middleware.js  # Request transformation (camelCase → snake_case)
     │   └── validateZod.js             # Zod validation middleware
     ├── routes/
@@ -1117,7 +1117,7 @@ export default router
 ### **5. Error Handling Pattern**
 
 ```javascript
-// src/middleware/errorHandler.js
+// src/middleware/errorHandler.middleware.js
 import { response } from '../utils/response.js'
 import logger from '../utils/logger.js'
 

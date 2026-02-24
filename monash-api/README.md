@@ -883,9 +883,9 @@ monash-api/
 │   ├── db/
 │   │   └── monash.sql         # Database schema & seed data
 │   ├── middleware/
-│   │   ├── errorHandler.js    # Global error handler
-│   │   ├── transformRequest.js  # camelCase ↔ snake_case
-│   │   └── validateZod.js    # Zod validation middleware
+│   │   ├── errorHandler.middleware.js    # Global error handler
+│   │   ├── transformRequest.middleware.js  # camelCase ↔ snake_case
+│   │   └── validateZod.middleware.js    # Zod validation middleware
 │   ├── routes/
 │   │   ├── index.js           # Route aggregator
 │   │   ├── students.routes.js # Student routes
