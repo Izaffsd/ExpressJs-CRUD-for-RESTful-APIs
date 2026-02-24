@@ -2,7 +2,7 @@ import express from 'express'
 import morgan from 'morgan'
 import cors from 'cors'
 import routes from './src/routes/index.js'
-import { errorHandler } from './src/middleware/errorHandler.js'
+import { errorHandler } from './src/middleware/errorHandler.middleware.js'
 import path from "path"
 import { fileURLToPath } from "url"
 

@@ -28,7 +28,7 @@ if (!result.success) {
   if (!fs.existsSync('logs')) fs.mkdirSync('logs')
   fs.appendFileSync('logs/error.log', logEntry)
 
-  process.exit(1)  // Selamat exit sekarang
+  process.exit(1)
 }
 
 export default result.data

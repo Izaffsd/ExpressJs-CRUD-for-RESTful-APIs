@@ -24,6 +24,11 @@ const courseId = z.number()
   .positive('Course ID must be positive')
 
 // Schemas
+
+export const getCourseByIdSchema = z.object({
+  course_id: courseIdParam
+})
+
 export const getCourseByCodeSchema = z.object({
   course_code: z.string()
     .min(1, 'Course code is required')
@@ -45,6 +50,5 @@ export const createCourseSchema = z.object({
 export const updateCourseSchema = z.object({
   course_code: courseCode,
   course_name: courseName,
-  course_id: courseId
 })
 

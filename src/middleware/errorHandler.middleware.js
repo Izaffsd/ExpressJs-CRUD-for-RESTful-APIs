@@ -1,3 +1,4 @@
+import { AppError } from '../utils/AppError.js'
 import { response } from '../utils/response.js'
 import logger from '../utils/logger.js'
 
@@ -54,6 +55,11 @@ export const errorHandler = (err, req, res, next) => {
     
     timestamp: new Date().toISOString()
   })
+
+  // Known operational errors (AppError)
+  if (err instanceof AppError) {
+      return response(res, err.statusCode, err.message, null, err.errorCode)
+  }
 
   // Response to CLIENT
   if (err.errorCode === 'RESOURCE_NOT_FOUND_404') return response(res, 404, 'Resource not found', null, 'RESOURCE_NOT_FOUND_404')

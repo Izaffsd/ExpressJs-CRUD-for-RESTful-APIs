@@ -6,7 +6,7 @@ import {
     updateStudent,
     deleteStudent
 } from '../controllers/students.controller.js'
-import { validateZod } from '../middleware/validateZod.js'
+import { validateZod } from '../middleware/validateZod.middleware.js'
 import {
     getStudentByIdSchema,
     createStudentSchema,
